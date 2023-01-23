@@ -1,0 +1,1795 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://sf:sfpwd@localhost:3310/smart-forester?schema=public&connect_timeout=60"
+  // url      = "mysql://sf:sfpwd@smart-forester-mariadb:3306/smart-forester?schema=public&connect_timeout=60"
+}
+
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../../generated/mysql"
+}
+
+model access_rights {
+  id                String         @id @db.VarChar(255)
+  contact_person_id String         @db.VarChar(255)
+  partner_id        String         @db.VarChar(255)
+  contact_person    contact_person @relation(fields: [contact_person_id], references: [id], onUpdate: Restrict, map: "fk_access_rights_contact_person")
+  partner           partner        @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_access_rights_partner")
+
+  @@index([contact_person_id], map: "fk_access_rights_contact_person")
+  @@index([partner_id], map: "fk_access_rights_partner")
+}
+
+model access_rights_invitation {
+  id                                                                                  String         @id @db.VarChar(255)
+  partner_id                                                                          String         @db.VarChar(255)
+  contact_person_id                                                                   String         @db.VarChar(255)
+  request_date                                                                        DateTime?      @db.Timestamp(0)
+  requester_contact_person_id                                                         String         @db.VarChar(255)
+  message                                                                             String?        @db.VarChar(500)
+  contact_person_access_rights_invitation_contact_person_idTocontact_person           contact_person @relation("access_rights_invitation_contact_person_idTocontact_person", fields: [contact_person_id], references: [id], onUpdate: Restrict, map: "fk_access_invitation_contact_person")
+  partner                                                                             partner        @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_access_invitation_partner")
+  contact_person_access_rights_invitation_requester_contact_person_idTocontact_person contact_person @relation("access_rights_invitation_requester_contact_person_idTocontact_person", fields: [requester_contact_person_id], references: [id], onUpdate: Restrict, map: "fk_access_invitation_r_contact_person")
+
+  @@index([contact_person_id], map: "fk_access_invitation_contact_person")
+  @@index([partner_id], map: "fk_access_invitation_partner")
+  @@index([requester_contact_person_id], map: "fk_access_invitation_r_contact_person")
+}
+
+model advance_payment {
+  id                                    String                                  @id @db.VarChar(50)
+  contract_id                           String                                  @db.VarChar(50)
+  task_type                             String                                  @db.VarChar(100)
+  addendum                              String?                                 @db.VarChar(255)
+  creation_date                         DateTime?                               @db.Timestamp(0)
+  amount                                Decimal                                 @db.Decimal(13, 4)
+  reason                                String?                                 @db.VarChar(255)
+  settled                               BigInt
+  contract                              contract                                @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "fk_contract_advance_payment")
+  invoicing_advance_payment_association invoicing_advance_payment_association[] @ignore
+  invoicing_position                    invoicing_position[]
+
+  @@index([contract_id], map: "fk_contract_advance_payment")
+}
+
+model bank_account {
+  id                String  @id @db.VarChar(255)
+  bank_name         String? @db.VarChar(255)
+  iban              String  @db.VarChar(255)
+  bic               String? @db.VarChar(255)
+  partner_id        String  @db.VarChar(255)
+  iban_format       Boolean @default(true)
+  main_bank_account Boolean @default(false)
+  partner           partner @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_bank_account_partner")
+
+  @@index([partner_id], map: "fk_bank_account_partner")
+}
+
+model certificate {
+  id                 String   @id @db.VarChar(255)
+  certificate_type   String   @db.VarChar(255)
+  certificate_number String   @db.VarChar(255)
+  expire_date        DateTime @db.Date
+  partner_id         String   @db.VarChar(255)
+  license_number     String?  @db.VarChar(255)
+  created_by         String?  @db.VarChar(50)
+  created_partner_by String?  @db.VarChar(50)
+  partner            partner  @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_certificate_partner")
+
+  @@index([certificate_type], map: "certificate_type_idx")
+  @@index([partner_id], map: "fk_certificate_partner")
+}
+
+model contact_data {
+  id                             String          @id @db.VarChar(255)
+  country_id                     String?         @db.VarChar(255)
+  postcode                       String?         @db.VarChar(255)
+  city                           String?         @db.VarChar(255)
+  address_line                   String?         @db.VarChar(255)
+  email                          String?         @db.VarChar(255)
+  mobile_number                  String?         @db.VarChar(255)
+  landline_number                String?         @db.VarChar(255)
+  fax_number                     String?         @db.VarChar(255)
+  contact_person_id              String?         @db.VarChar(255)
+  partner_id                     String?         @db.VarChar(255)
+  state                          String?         @db.VarChar(255)
+  district                       String?         @db.VarChar(255)
+  homepage                       String?         @db.VarChar(100)
+  management                     String?         @db.VarChar(100)
+  local_court                    String?         @db.VarChar(100)
+  commercial_registration_number String?         @db.VarChar(100)
+  location_name                  String?         @db.VarChar(100)
+  main_contact_person            String?         @db.VarChar(100)
+  longitude                      Decimal?        @db.Decimal(13, 10)
+  latitude                       Decimal?        @db.Decimal(13, 10)
+  contact_person                 contact_person? @relation(fields: [contact_person_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contact_person_contact_data")
+  country                        country?        @relation(fields: [country_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_country_contact_data")
+  partner                        partner?        @relation(fields: [partner_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_partner_contact_data")
+
+  @@index([address_line], map: "address_line_idx")
+  @@index([city], map: "city_idx")
+  @@index([email], map: "email_idx")
+  @@index([contact_person_id], map: "fk_contact_person_contact_data")
+  @@index([country_id], map: "fk_country_contact_data")
+  @@index([partner_id], map: "fk_partner_contact_data")
+  @@index([postcode], map: "postcode_idx")
+}
+
+model contact_person {
+  id                                                                                            String                     @id @db.VarChar(255)
+  first_name                                                                                    String                     @db.VarChar(255)
+  last_name                                                                                     String                     @db.VarChar(255)
+  title                                                                                         String?                    @db.VarChar(255)
+  partner_id                                                                                    String?                    @db.VarChar(255)
+  can_login                                                                                     Boolean
+  locale                                                                                        String?                    @db.VarChar(255)
+  is_social_login                                                                               Boolean                    @default(false)
+  salutation                                                                                    String?                    @db.VarChar(255)
+  comment                                                                                       String?                    @db.VarChar(255)
+  auto_gps                                                                                      Boolean                    @default(false)
+  visible_for_others                                                                            Boolean                    @default(false)
+  last_login                                                                                    DateTime?                  @db.Timestamp(0)
+  created_by                                                                                    String?                    @db.VarChar(50)
+  created_at                                                                                    DateTime?                  @db.Timestamp(0)
+  updated_by                                                                                    String?                    @db.VarChar(50)
+  updated_at                                                                                    DateTime?                  @db.Timestamp(0)
+  image_upload_compression                                                                      String?                    @db.VarChar(30)
+  start_position                                                                                String?                    @default("dashboard") @db.VarChar(100)
+  access_rights                                                                                 access_rights[]
+  access_rights_invitation_access_rights_invitation_contact_person_idTocontact_person           access_rights_invitation[] @relation("access_rights_invitation_contact_person_idTocontact_person")
+  access_rights_invitation_access_rights_invitation_requester_contact_person_idTocontact_person access_rights_invitation[] @relation("access_rights_invitation_requester_contact_person_idTocontact_person")
+  contact_data                                                                                  contact_data[]
+  partner                                                                                       partner?                   @relation(fields: [partner_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contact_person_partner")
+  contact_person_role                                                                           contact_person_role[]      @ignore
+  forest_area_parcel                                                                            forest_area_parcel[]
+  invoicing                                                                                     invoicing[]
+  notification                                                                                  notification[]
+  partner_mandate_person                                                                        partner_mandate_person[]
+  partner_supervisor                                                                            partner_supervisor[]
+
+  @@index([first_name], map: "first_name_idx")
+  @@index([partner_id], map: "fk_contact_person_partner")
+  @@index([last_name], map: "last_name_idx")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model contact_person_role {
+  contact_person_role String         @db.VarChar(255)
+  contact_person_id   String         @db.VarChar(255)
+  contact_person      contact_person @relation(fields: [contact_person_id], references: [id], onUpdate: Restrict, map: "fk_cpr_contact_person")
+
+  @@index([contact_person_role], map: "contact_person_role_idx")
+  @@index([contact_person_id], map: "fk_cpr_contact_person")
+  @@ignore
+}
+
+model contract {
+  id                               String                          @id @db.VarChar(255)
+  buyer_id                         String?                         @db.VarChar(255)
+  buyer_contact_person_id          String?                         @db.VarChar(255)
+  seller_id                        String                          @db.VarChar(255)
+  seller_contact_person_id         String?                         @db.VarChar(255)
+  contract_number                  String                          @db.VarChar(255)
+  contract_title                   String?                         @db.VarChar(255)
+  start_time                       DateTime?                       @db.Timestamp(0)
+  end_time                         DateTime                        @default(dbgenerated("('0000-00-00 00:00:00')")) @db.Timestamp(0)
+  contract_number_reference        String?                         @db.VarChar(255)
+  signing_date                     DateTime?                       @db.Timestamp(0)
+  contract_details_timber_trade_id String?                         @db.VarChar(255)
+  contract_type                    String                          @db.VarChar(255)
+  demo_partner                     String?                         @db.VarChar(100)
+  demo_contact_person              String?                         @db.VarChar(100)
+  created_by                       String?                         @db.VarChar(50)
+  created_at                       DateTime?                       @db.Timestamp(0)
+  updated_by                       String?                         @db.VarChar(50)
+  updated_at                       DateTime?                       @db.Timestamp(0)
+  simulation                       Boolean                         @default(false)
+  original_contract_id             String?                         @db.VarChar(50)
+  temporary                        Boolean                         @default(false)
+  status                           String?                         @db.VarChar(30)
+  advance_payment                  advance_payment[]
+  contract_comment                 contract_comment[]
+  contract_details_timber_trade    contract_details_timber_trade[]
+  contract_uploaded_document       contract_uploaded_document[]
+  forestry_price_book              forestry_price_book[]
+  pile                             pile[]
+  pile_task                        pile_task[]
+  price_book                       price_book[]
+
+  @@index([contract_details_timber_trade_id], map: "contract_details_timber_trade_id")
+}
+
+model contract_comment {
+  id           String    @id @db.VarChar(255)
+  contract_id  String    @db.VarChar(255)
+  created_date DateTime? @db.Timestamp(0)
+  comment      String?   @db.VarChar(500)
+  user_id      String?   @db.VarChar(255)
+  contract     contract  @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "fk_contract_comment")
+
+  @@index([contract_id], map: "fk_contract_comment")
+}
+
+model contract_details_timber_trade {
+  id                                         String                                       @id @db.VarChar(255)
+  contract_id                                String                                       @db.VarChar(255)
+  vibration_factor                           Float?                                       @db.Float
+  conversion_factor                          Float?                                       @db.Float
+  payment_target                             Int?
+  discount                                   Float?                                       @db.Float
+  currency                                   String                                       @db.VarChar(255)
+  pile_damage_rule                           String?                                      @db.VarChar(255)
+  forest_measurement                         Boolean?                                     @db.Bit(1)
+  factory_measurement                        Boolean?                                     @db.Bit(1)
+  contract_amount                            Float?                                       @db.Float
+  deviation_contract_amount                  Float?                                       @db.Float
+  harvester_type                             String?                                      @db.VarChar(255)
+  harvester_location                         String?                                      @db.VarChar(255)
+  billing                                    String?                                      @db.VarChar(255)
+  sales_type                                 String?                                      @db.VarChar(255)
+  contract_amount_unit                       Int                                          @default(0)
+  remarks                                    String?                                      @db.Text
+  non_certified_wood                         Boolean                                      @default(false)
+  payment_due_days                           Int?
+  forest_measurement_type                    String?                                      @db.VarChar(100)
+  contract                                   contract                                     @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "fk_contract_contract_details_timber_trade")
+  contract_details_timber_trade_certificate  contract_details_timber_trade_certificate[]
+  contract_details_timber_trade_fsp_contract contract_details_timber_trade_fsp_contract[]
+
+  @@index([contract_id], map: "fk_contract_contract_details_timber_trade")
+}
+
+model contract_details_timber_trade_certificate {
+  id                               String                         @id @db.VarChar(255)
+  contract_details_timber_trade_id String?                        @db.VarChar(255)
+  certificate_id                   String?                        @db.VarChar(255)
+  contract_details_timber_trade    contract_details_timber_trade? @relation(fields: [contract_details_timber_trade_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "contract_details_timber_trade_certificate_fk")
+
+  @@index([contract_details_timber_trade_id], map: "contract_details_timber_trade_certificate_fk")
+}
+
+model contract_details_timber_trade_fsp_contract {
+  id                            String                         @id @db.VarChar(50)
+  contract_details_id           String?                        @db.VarChar(50)
+  linked_contract_id            String?                        @db.VarChar(50)
+  task_type                     String?                        @db.VarChar(100)
+  technique                     String?                        @db.VarChar(100)
+  contract_details_timber_trade contract_details_timber_trade? @relation(fields: [contract_details_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contract_details_timber_trade_fsp_contract")
+
+  @@index([contract_details_id], map: "fk_contract_details_timber_trade_fsp_contract")
+}
+
+model contract_uploaded_document {
+  id          String   @id @db.VarChar(255)
+  contract_id String   @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  path        String   @db.VarChar(255)
+  contract    contract @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "fk_contract_contract_uploaded_document")
+
+  @@index([contract_id], map: "fk_contract_contract_uploaded_document")
+}
+
+model country {
+  id           String         @id @db.VarChar(255)
+  country_code String?        @db.VarChar(255)
+  contact_data contact_data[]
+}
+
+model flyway_schema_history {
+  installed_rank Int      @id
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(0)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+}
+
+model forest_area {
+  id                  String                @id @db.VarChar(255)
+  name                String                @db.VarChar(255)
+  partner_id          String                @db.VarChar(255)
+  hectare             Float?                @default(0) @db.Float
+  wood_market         String?               @db.VarChar(50)
+  cost_level          String?               @db.VarChar(50)
+  lead_url            String?               @db.VarChar(255)
+  record_date         DateTime?             @db.Timestamp(0)
+  states              String?               @db.VarChar(500)
+  districts           String?               @db.VarChar(500)
+  forest_type         String?               @db.VarChar(255)
+  created_by          String?               @db.VarChar(50)
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_by          String?               @db.VarChar(50)
+  updated_at          DateTime?             @db.Timestamp(0)
+  country_code        String?               @db.VarChar(50)
+  forest_ranger_id    String?               @db.VarChar(50)
+  partner             partner               @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "forest_area_ibfk_1")
+  forest_area_sharing forest_area_sharing[]
+  forest_department   forest_department[]
+
+  @@index([partner_id], map: "partner_id")
+}
+
+model forest_area_import_history {
+  id                               String                             @id @db.VarChar(50)
+  forest_area_id                   String                             @db.VarChar(50)
+  import_type                      String                             @db.VarChar(50)
+  document_name                    String                             @db.VarChar(100)
+  type                             String                             @db.VarChar(50)
+  date                             DateTime                           @default(now()) @db.Timestamp(0)
+  user_name                        String                             @db.VarChar(50)
+  errors                           Int?
+  forest_area_import_history_error forest_area_import_history_error[]
+}
+
+model forest_area_import_history_error {
+  id                         String                     @id @db.VarChar(50)
+  forest_area_import_id      String                     @db.VarChar(50)
+  district_id                String                     @db.VarChar(50)
+  error_code                 String                     @db.VarChar(100)
+  forest_area_import_history forest_area_import_history @relation(fields: [forest_area_import_id], references: [id], onUpdate: Restrict, map: "fk_fa_import_history_fa_import_history_error")
+
+  @@index([forest_area_import_id], map: "fk_fa_import_history_fa_import_history_error")
+}
+
+model forest_area_parcel {
+  id                       String                     @id @db.VarChar(255)
+  forest_id                String                     @db.VarChar(255)
+  polygon                  String?                    @db.Text
+  partner_id               String?                    @db.VarChar(255)
+  contact_person_id        String?                    @db.VarChar(255)
+  nearest_city             String?                    @db.VarChar(255)
+  cadastral_district       String?                    @db.VarChar(255)
+  parcel                   String?                    @db.VarChar(255)
+  plot                     String?                    @db.VarChar(255)
+  plot_id                  String?                    @db.VarChar(255)
+  hectare                  Float?                     @default(0) @db.Float
+  extended_designation     String?                    @db.VarChar(255)
+  parcel_id                String?                    @db.VarChar(100)
+  share_part               Int                        @default(1)
+  share_total              Int                        @default(1)
+  contact_person           contact_person?            @relation(fields: [contact_person_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_area_parcel_contact")
+  partner                  partner?                   @relation(fields: [partner_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_area_parcel_partner")
+  forest_area_parcel_share forest_area_parcel_share[]
+  forestry_district_parcel forestry_district_parcel[]
+
+  @@index([contact_person_id], map: "fk_forest_area_parcel_contact")
+  @@index([partner_id], map: "fk_forest_area_parcel_partner")
+}
+
+model forest_area_parcel_share {
+  id                 String              @id @db.VarChar(50)
+  partner_id         String?             @db.VarChar(50)
+  contact_person_id  String?             @db.VarChar(50)
+  parcel_id          String?             @db.VarChar(50)
+  share_part         Int
+  share_total        Int
+  forest_area_parcel forest_area_parcel? @relation(fields: [parcel_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_area_parcel_forest_area_parcel_share")
+
+  @@index([parcel_id], map: "fk_forest_area_parcel_forest_area_parcel_share")
+}
+
+model forest_area_sharing {
+  id             String      @id @db.VarChar(255)
+  forest_area_id String      @db.VarChar(255)
+  partner_id     String      @db.VarChar(255)
+  forest_area    forest_area @relation(fields: [forest_area_id], references: [id], onUpdate: Restrict, map: "fk_fa_fasharing")
+
+  @@index([forest_area_id], map: "fk_fa_fasharing")
+}
+
+model forest_department {
+  id                     String                  @id @db.VarChar(255)
+  forest_area_id         String                  @db.VarChar(255)
+  name                   String?                 @db.VarChar(150)
+  polygon                String?                 @db.MediumText
+  data_id                String?                 @db.VarChar(255)
+  climatic_data_id       String?                 @db.VarChar(255)
+  hectare                Float?                  @db.Float
+  forester_id            String?                 @db.VarChar(255)
+  district_id            String?                 @db.VarChar(50)
+  forestry_climatic_data forestry_climatic_data? @relation(fields: [climatic_data_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_department_climatic_data")
+  forestry_district_data forestry_district_data? @relation(fields: [data_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_department_data")
+  forest_area            forest_area             @relation(fields: [forest_area_id], references: [id], onUpdate: Restrict, map: "fk_forest_department_forest")
+  forest_subdepartment   forest_subdepartment[]
+
+  @@index([climatic_data_id], map: "fk_forest_department_climatic_data")
+  @@index([data_id], map: "fk_forest_department_data")
+  @@index([forest_area_id], map: "fk_forest_department_forest")
+}
+
+model forest_lead {
+  id                    String                  @id @db.VarChar(255)
+  ha                    String?                 @db.VarChar(30)
+  stock                 Int?
+  wood_market           Int?
+  cost_level            Int?
+  location_id           String?                 @db.VarChar(255)
+  partner_id            String?                 @db.VarChar(255)
+  lead_url              String?                 @db.VarChar(255)
+  create_date           DateTime?               @db.DateTime(0)
+  forest_lead_location  forest_lead_location?   @relation(fields: [location_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "forest_lead_ibfk_1")
+  forest_lead_tree_type forest_lead_tree_type[]
+
+  @@index([location_id], map: "location_id")
+  @@index([partner_id], map: "partner_id")
+}
+
+model forest_lead_location {
+  id          String        @id @db.VarChar(255)
+  very_good   Float?        @db.Float
+  medium      Float?        @db.Float
+  moderate    Float?        @db.Float
+  weak        Float?        @db.Float
+  forest_lead forest_lead[]
+}
+
+model forest_lead_tree_type {
+  id                             String      @id @db.VarChar(255)
+  type                           String?     @db.VarChar(20)
+  percentage                     Float?      @db.Float
+  nature_rejuvenation_percentage Float?      @db.Float
+  nature_rejuvenation_amount     Float?      @db.Float
+  young_percentage               Float?      @db.Float
+  young_amount                   Float?      @db.Float
+  young_stock                    Float?      @db.Float
+  medium_percentage              Float?      @db.Float
+  medium_amount                  Float?      @db.Float
+  medium_stock                   Float?      @db.Float
+  old_percentage                 Float?      @db.Float
+  old_amount                     Float?      @db.Float
+  old_stock                      Float?      @db.Float
+  forest_lead_id                 String      @db.VarChar(255)
+  forest_lead                    forest_lead @relation(fields: [forest_lead_id], references: [id], onUpdate: Restrict, map: "forest_lead_tree_type_ibfk_1")
+
+  @@index([forest_lead_id], map: "forest_lead_id")
+}
+
+model forest_stand {
+  id                          String                 @id @db.VarChar(255)
+  forestry_data_id            String                 @db.VarChar(255)
+  stand_type                  String?                @db.VarChar(255)
+  avg_height_m                Decimal?               @db.Decimal(8, 2)
+  avg_diameter_cm             Int?
+  tree_age_class              String?                @db.VarChar(255)
+  percentage                  Float?                 @db.Float
+  under_story_percentage      Float?                 @db.Float
+  old_growth_stage_percentage Float?                 @db.Float
+  stocking_rate               Float?                 @db.Float
+  forestry_district_data      forestry_district_data @relation(fields: [forestry_data_id], references: [id], onUpdate: Restrict, map: "fk_forest_stand_forestry_data")
+  forest_stand_species        forest_stand_species[]
+
+  @@index([forestry_data_id], map: "fk_forest_stand_forestry_data")
+}
+
+model forest_stand_species {
+  id           String       @id @db.VarChar(255)
+  stand_id     String       @db.VarChar(255)
+  wood_type    Int?
+  percentage   Float?       @db.Float
+  forest_stand forest_stand @relation(fields: [stand_id], references: [id], onUpdate: Restrict, map: "fk_forest_stand_species_stand")
+
+  @@index([stand_id], map: "fk_forest_stand_species_stand")
+}
+
+model forest_subarea {
+  id                      String                  @id @db.VarChar(255)
+  forest_subdepartment_id String                  @db.VarChar(255)
+  name                    String?                 @db.VarChar(150)
+  polygon                 String?                 @db.MediumText
+  data_id                 String?                 @db.VarChar(255)
+  hectare                 Float?                  @db.Float
+  district_id             String?                 @db.VarChar(50)
+  forestry_district_data  forestry_district_data? @relation(fields: [data_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_subarea_data")
+  forest_subdepartment    forest_subdepartment    @relation(fields: [forest_subdepartment_id], references: [id], onUpdate: Restrict, map: "fk_forest_subarea_subdepartment")
+
+  @@index([data_id], map: "fk_forest_subarea_data")
+  @@index([forest_subdepartment_id], map: "fk_forest_subarea_subdepartment")
+}
+
+model forest_subdepartment {
+  id                     String                  @id @db.VarChar(255)
+  forest_department_id   String                  @db.VarChar(255)
+  name                   String?                 @db.VarChar(150)
+  polygon                String?                 @db.MediumText
+  data_id                String?                 @db.VarChar(255)
+  hectare                Float?                  @db.Float
+  district_id            String?                 @db.VarChar(50)
+  forest_subarea         forest_subarea[]
+  forestry_district_data forestry_district_data? @relation(fields: [data_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_forest_subdepartment_data")
+  forest_department      forest_department       @relation(fields: [forest_department_id], references: [id], onUpdate: Restrict, map: "fk_forest_subdepartment_department")
+
+  @@index([data_id], map: "fk_forest_subdepartment_data")
+  @@index([forest_department_id], map: "fk_forest_subdepartment_department")
+}
+
+model forestry_climatic_data {
+  id                   String              @id @db.VarChar(255)
+  forestry_district_id String              @db.VarChar(255)
+  growth_region        String?             @db.VarChar(255)
+  growth_district      String?             @db.VarChar(255)
+  climate_stage        String?             @db.VarChar(255)
+  forest_department    forest_department[]
+}
+
+model forestry_district_data {
+  id                   String                 @id @db.VarChar(255)
+  color                String?                @db.VarChar(255)
+  striped              Boolean?               @default(false)
+  statutory            Boolean?               @default(false)
+  function_type        String?                @db.VarChar(255)
+  stand_spacing        String?                @db.VarChar(255)
+  clearing             Boolean?               @default(false)
+  clearing_percentage  Int?                   @default(0)
+  lane                 Boolean?               @default(false)
+  location_id          String?                @db.VarChar(50)
+  location_name        String?                @db.VarChar(100)
+  secondary_color      String?                @db.VarChar(255)
+  forest_department    forest_department[]
+  forest_stand         forest_stand[]
+  forest_subarea       forest_subarea[]
+  forest_subdepartment forest_subdepartment[]
+}
+
+model forestry_district_parcel {
+  district_id        String             @db.VarChar(255)
+  parcel_id          String             @db.VarChar(255)
+  forest_area_parcel forest_area_parcel @relation(fields: [parcel_id], references: [id], onUpdate: Restrict, map: "fk_forest_district_parcel")
+
+  @@id([district_id, parcel_id])
+  @@index([parcel_id], map: "fk_forest_district_parcel")
+}
+
+model forestry_price_book {
+  id           String      @id @db.VarChar(50)
+  contract_id  String      @db.VarChar(50)
+  order_number Int
+  task_type    String      @db.VarChar(50)
+  technique    String      @db.VarChar(50)
+  price        Float       @db.Float
+  buying_unit  String      @db.VarChar(10)
+  read_only    Boolean     @default(false)
+  contract     contract    @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "fk_forestry_price_book_contract_id")
+  pile_task    pile_task[]
+
+  @@index([contract_id], map: "fk_forestry_price_book_contract_id")
+}
+
+model freight_zone {
+  id                             String                           @id @db.VarChar(255)
+  valid_from                     DateTime?                        @db.Timestamp(0)
+  valid_until                    DateTime?                        @db.Timestamp(0)
+  logistic_partner_id            String?                          @db.VarChar(255)
+  payment_term                   String?                          @db.VarChar(255)
+  name                           String?                          @db.VarChar(255)
+  price_unit                     Int                              @default(0)
+  reference_number               String?                          @db.VarChar(255)
+  creator_partner_id             String?                          @db.VarChar(50)
+  freight_zone_entry             freight_zone_entry[]
+  freight_zone_intended_customer freight_zone_intended_customer[]
+  transport_order                transport_order[]
+}
+
+model freight_zone_entry {
+  id              String        @id @db.VarChar(255)
+  freight_zone_id String?       @db.VarChar(255)
+  range_min_km    Int?
+  range_max_km    Int?
+  price           Decimal?      @db.Decimal(13, 4)
+  freight_zone    freight_zone? @relation(fields: [freight_zone_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_fze_freight_zone")
+
+  @@index([freight_zone_id], map: "fk_fze_freight_zone")
+}
+
+model freight_zone_intended_customer {
+  id              String       @id @db.VarChar(255)
+  freight_zone_id String       @db.VarChar(255)
+  customer_id     String       @db.VarChar(255)
+  freight_zone    freight_zone @relation(fields: [freight_zone_id], references: [id], onUpdate: Restrict, map: "fk_freight_zone_freight_zone_id")
+
+  @@index([freight_zone_id], map: "fk_freight_zone_freight_zone_id")
+}
+
+model harvest_yield {
+  id                       String                     @id @db.VarChar(50)
+  date                     DateTime?                  @db.Timestamp(0)
+  amount_rm                Decimal                    @db.Decimal(13, 4)
+  forest_area_id           String                     @db.VarChar(50)
+  total_revenue            Decimal?                   @db.Decimal(13, 4)
+  harvest_yield_department harvest_yield_department[]
+  harvest_yield_kind       harvest_yield_kind[]
+  harvest_yield_parcel     harvest_yield_parcel[]
+  harvest_yield_quality    harvest_yield_quality[]
+  harvest_yield_wood_type  harvest_yield_wood_type[]
+}
+
+model harvest_yield_department {
+  id                            String                          @id @db.VarChar(50)
+  forestry_district_id          String                          @db.VarChar(100)
+  district_id                   String?                         @db.VarChar(100)
+  amount_rm                     Decimal                         @db.Decimal(13, 4)
+  percentage                    Float                           @db.Float
+  harvest_yield_id              String                          @db.VarChar(50)
+  harvest_yield                 harvest_yield                   @relation(fields: [harvest_yield_id], references: [id], onUpdate: Restrict, map: "fk_harvest_yield_harvest_yield_department")
+  pile_harvest_yield_department pile_harvest_yield_department[]
+
+  @@index([harvest_yield_id], map: "fk_harvest_yield_harvest_yield_department")
+}
+
+model harvest_yield_kind {
+  id               String        @id @db.VarChar(50)
+  harvest_yield_id String        @db.VarChar(50)
+  kind             String        @db.VarChar(50)
+  harvest_yield    harvest_yield @relation(fields: [harvest_yield_id], references: [id], onUpdate: Restrict, map: "fk_harvest_yield_harvest_yield_kind")
+
+  @@index([harvest_yield_id], map: "fk_harvest_yield_harvest_yield_kind")
+}
+
+model harvest_yield_parcel {
+  id                        String                      @id @db.VarChar(50)
+  parcel_id                 String                      @db.VarChar(100)
+  cadastral_district        String                      @db.VarChar(100)
+  parcel                    String                      @db.VarChar(100)
+  plot                      String                      @db.VarChar(100)
+  amount_rm                 Decimal                     @db.Decimal(13, 4)
+  percentage                Float                       @db.Float
+  harvest_yield_id          String                      @db.VarChar(50)
+  harvest_yield             harvest_yield               @relation(fields: [harvest_yield_id], references: [id], onUpdate: Restrict, map: "fk_harvest_yield_harvest_yield_parcel")
+  pile_harvest_yield_parcel pile_harvest_yield_parcel[]
+
+  @@index([harvest_yield_id], map: "fk_harvest_yield_harvest_yield_parcel")
+}
+
+model harvest_yield_quality {
+  id               String        @id @db.VarChar(50)
+  harvest_yield_id String        @db.VarChar(50)
+  quality          String        @db.VarChar(50)
+  harvest_yield    harvest_yield @relation(fields: [harvest_yield_id], references: [id], onUpdate: Restrict, map: "fk_harvest_yield_harvest_yield_quality")
+
+  @@index([harvest_yield_id], map: "fk_harvest_yield_harvest_yield_quality")
+}
+
+model harvest_yield_wood_type {
+  id               String        @id @db.VarChar(50)
+  harvest_yield_id String        @db.VarChar(50)
+  wood_type        String        @db.VarChar(50)
+  harvest_yield    harvest_yield @relation(fields: [harvest_yield_id], references: [id], onUpdate: Restrict, map: "fk_harvest_yield_harvest_yield_wood_type")
+
+  @@index([harvest_yield_id], map: "fk_harvest_yield_harvest_yield_wood_type")
+}
+
+model intermediate_storage {
+  id          String  @id @db.VarChar(50)
+  partner_id  String  @db.VarChar(50)
+  designation String? @db.VarChar(100)
+  parcel      String? @db.VarChar(100)
+  state       String? @db.VarChar(100)
+  district    String? @db.VarChar(100)
+  city        String? @db.VarChar(100)
+  longitude   Decimal @db.Decimal(13, 4)
+  latitude    Decimal @db.Decimal(13, 4)
+}
+
+model invoicing {
+  id                                              String                                  @id @db.VarChar(50)
+  invoicing_number                                String                                  @db.VarChar(70)
+  creation_date                                   DateTime?                               @db.Timestamp(0)
+  invoice_date                                    DateTime?                               @db.Timestamp(0)
+  service_date                                    String?                                 @db.VarChar(150)
+  wood_recording_date                             DateTime?                               @db.Timestamp(0)
+  creator_partner_id                              String                                  @db.VarChar(50)
+  creator_contact_person_id                       String                                  @db.VarChar(50)
+  recipient_partner_id                            String                                  @db.VarChar(50)
+  recipient_tax_number                            String?                                 @db.VarChar(50)
+  discount                                        Float?                                  @db.Float
+  payment_target                                  Int?
+  creator_partner_vat                             String?                                 @db.VarChar(50)
+  recipient_partner_vat                           String?                                 @db.VarChar(50)
+  status                                          String                                  @db.VarChar(30)
+  type                                            String                                  @db.VarChar(30)
+  external_partner_number                         String?                                 @db.VarChar(50)
+  paid_date                                       DateTime?                               @db.Timestamp(0)
+  subject                                         String?                                 @db.VarChar(150)
+  creator_tax_number                              String?                                 @db.VarChar(50)
+  refer_to_recipient_contact_person               Int                                     @db.TinyInt
+  contract_id                                     String?                                 @db.VarChar(50)
+  cancelation_date                                DateTime?                               @db.Timestamp(0)
+  vat_rate                                        String?                                 @db.VarChar(100)
+  vat_note                                        String?                                 @db.VarChar(100)
+  payment_due_days                                Int                                     @default(30)
+  contact_person                                  contact_person                          @relation(fields: [creator_contact_person_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_creator_contact_person_id")
+  partner_invoicing_creator_partner_idTopartner   partner                                 @relation("invoicing_creator_partner_idTopartner", fields: [creator_partner_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_creator_partner_id")
+  partner_invoicing_recipient_partner_idTopartner partner                                 @relation("invoicing_recipient_partner_idTopartner", fields: [recipient_partner_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_receipient_partner_id")
+  invoicing_advance_payment_association           invoicing_advance_payment_association[] //@ignore
+  invoicing_bank_account                          invoicing_bank_account[]
+  invoicing_contact_data                          invoicing_contact_data[]
+  invoicing_offer_number                          invoicing_offer_number[]                @ignore
+  invoicing_position                              invoicing_position[]
+  invoicing_project                               invoicing_project[]                     @ignore
+  invoicing_uploaded_document                     invoicing_uploaded_document[]
+
+  @@index([creator_contact_person_id], map: "fk_invoicing_creator_contact_person_id")
+  @@index([creator_partner_id], map: "fk_invoicing_creator_partner_id")
+  @@index([recipient_partner_id], map: "fk_invoicing_receipient_partner_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model invoicing_advance_payment_association {
+  invoicing_id       String          @id @db.VarChar(50)
+  advance_payment_id String          @db.VarChar(50)
+  advance_payment    advance_payment @relation(fields: [advance_payment_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_advance_payment_association_advance_payment")
+  invoicing          invoicing       @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_advance_payment_association_invoicing")
+
+  @@index([advance_payment_id], map: "fk_invoicing_advance_payment_association_advance_payment")
+  @@index([invoicing_id], map: "fk_invoicing_advance_payment_association_invoicing")
+  //@@ignore
+}
+
+model invoicing_bank_account {
+  id            String    @id @db.VarChar(50)
+  invoicing_id  String    @db.VarChar(50)
+  party         String    @db.VarChar(30)
+  bank_name     String    @db.VarChar(100)
+  iban          String    @db.VarChar(50)
+  bic           String?   @db.VarChar(50)
+  remark        String?   @db.VarChar(255)
+  certification String?   @db.VarChar(100)
+  invoicing     invoicing @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_bank_account_invoicing_id")
+
+  @@index([invoicing_id], map: "fk_invoicing_bank_account_invoicing_id")
+}
+
+model invoicing_contact_data {
+  id                             String    @id @db.VarChar(50)
+  party                          String    @db.VarChar(30)
+  invoicing_id                   String    @db.VarChar(50)
+  country_code                   String?   @db.VarChar(30)
+  postcode                       String    @db.VarChar(30)
+  city                           String    @db.VarChar(100)
+  address_line                   String    @db.VarChar(255)
+  email                          String?   @db.VarChar(100)
+  landline_number                String?   @db.VarChar(70)
+  fax_number                     String?   @db.VarChar(70)
+  homepage                       String?   @db.VarChar(100)
+  management                     String?   @db.VarChar(100)
+  management_local_court         String?   @db.VarChar(100)
+  management_registration_number String?   @db.VarChar(70)
+  company_name                   String    @db.VarChar(100)
+  contact_person_name            String?   @db.VarChar(100)
+  partner_number                 String?   @db.VarChar(10)
+  name_addition                  String?   @db.VarChar(150)
+  invoicing                      invoicing @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_contact_data_invoicing_id")
+
+  @@index([invoicing_id], map: "fk_invoicing_contact_data_invoicing_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model invoicing_offer_number {
+  offer_number String    @db.VarChar(50)
+  invoicing_id String    @db.VarChar(50)
+  invoicing    invoicing @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_offer_number_invoicing_id")
+
+  @@index([invoicing_id], map: "fk_invoicing_offer_number_invoicing_id")
+  @@ignore
+}
+
+model invoicing_position {
+  id                       String                     @id @db.VarChar(50)
+  invoicing_id             String                     @db.VarChar(50)
+  pile_id                  String?                    @db.VarChar(50)
+  position_title           String                     @db.VarChar(50)
+  position_number          Int
+  amount_rm                Float                      @db.Float
+  price_unit               String                     @db.VarChar(30)
+  lump_sum_percentage      Float?                     @db.Float
+  lump_sum_price_per_unit  Float?                     @db.Float
+  lump_sum_wood_quality    String?                    @db.VarChar(30)
+  lump_sum_vat             Float?                     @db.Float
+  pile_measurement_type    String?                    @db.VarChar(30)
+  position_type            String?                    @db.VarChar(30)
+  advance_payment_id       String?                    @db.VarChar(50)
+  advance_payment          advance_payment?           @relation(fields: [advance_payment_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoicing_position_advance_payment")
+  invoicing                invoicing                  @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_position_invoicing_id")
+  pile                     pile?                      @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoicing_position_pile_id")
+  invoicing_position_entry invoicing_position_entry[]
+
+  @@index([advance_payment_id], map: "fk_invoicing_position_advance_payment")
+  @@index([invoicing_id], map: "fk_invoicing_position_invoicing_id")
+  @@index([pile_id], map: "fk_invoicing_position_pile_id")
+}
+
+model invoicing_position_entry {
+  id                       String             @id @db.VarChar(50)
+  invoicing_position_id    String             @db.VarChar(50)
+  wood_type                Int
+  wood_kind                String?            @db.VarChar(30)
+  wood_quality             String?            @db.VarChar(30)
+  price_unit               String             @db.VarChar(30)
+  wood_strength_class      String?            @db.VarChar(30)
+  amount_rm                Float              @db.Float
+  billed_price_per_unit    Float              @db.Float
+  original_amount_rm       Float              @db.Float
+  vat                      Float              @db.Float
+  projected_price_per_unit Float?             @db.Float
+  amount_changed           Int                @db.TinyInt
+  task_type                String?            @db.VarChar(30)
+  amount_hour              Float?             @db.Float
+  strength_class_plus      Boolean            @default(false)
+  pile_task_id             String?            @db.VarChar(50)
+  addendum                 String?            @db.VarChar(255)
+  month                    DateTime?          @db.Timestamp(0)
+  reason                   String?            @db.VarChar(255)
+  price                    Decimal?           @db.Decimal(13, 4)
+  invoicing_position       invoicing_position @relation(fields: [invoicing_position_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_position_entry_invoicing_position_id")
+  pile_task                pile_task?         @relation(fields: [pile_task_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "invoicing_position_entry_ibfk_1")
+
+  @@index([invoicing_position_id], map: "fk_invoicing_position_entry_invoicing_position_id")
+  @@index([pile_task_id], map: "pile_task_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model invoicing_project {
+  project_id   String    @db.VarChar(50)
+  invoicing_id String    @db.VarChar(50)
+  invoicing    invoicing @relation(fields: [invoicing_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_project_invoicing_id")
+  project      project   @relation(fields: [project_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_project_project_id")
+
+  @@index([invoicing_id], map: "fk_invoicing_project_invoicing_id")
+  @@index([project_id], map: "fk_invoicing_project_project_id")
+  @@ignore
+}
+
+model invoicing_uploaded_document {
+  id         String    @id @db.VarChar(255)
+  invoice_id String    @db.VarChar(255)
+  name       String    @db.VarChar(255)
+  path       String    @db.VarChar(255)
+  invoicing  invoicing @relation(fields: [invoice_id], references: [id], onUpdate: Restrict, map: "fk_invoicing_invoicing_uploaded_document")
+
+  @@index([invoice_id], map: "fk_invoicing_invoicing_uploaded_document")
+}
+
+model location_designation {
+  id            String  @id @db.VarChar(50)
+  location_id   String? @db.VarChar(50)
+  location_name String? @db.VarChar(100)
+}
+
+model notification {
+  id                              String         @id @db.VarChar(255)
+  notification_type               String         @db.VarChar(255)
+  message                         String         @db.VarChar(255)
+  status                          String         @db.VarChar(255)
+  creation_time                   DateTime?      @db.Timestamp(0)
+  sender_partner_id               String?        @db.VarChar(255)
+  receiver_partner_id             String         @db.VarChar(255)
+  sender_contact_person_id        String?        @db.VarChar(255)
+  receiver_contact_person_id      String         @db.VarChar(255)
+  is_sender_delete_notification   Boolean        @default(false)
+  is_receiver_delete_notification Boolean        @default(false)
+  contact_person                  contact_person @relation(fields: [receiver_contact_person_id], references: [id], onUpdate: Restrict, map: "fk_receiver_notification_contact_person")
+
+  @@index([receiver_contact_person_id], map: "fk_receiver_notification_contact_person")
+}
+
+model partner {
+  id                                                                         String                      @id @db.VarChar(255)
+  company_name                                                               String?                     @db.VarChar(255)
+  partner_type                                                               String                      @db.VarChar(255)
+  activated                                                                  Boolean
+  vat                                                                        String?                     @db.VarChar(255)
+  tax_number                                                                 String?                     @db.VarChar(255)
+  partner_number                                                             String?                     @db.VarChar(255)
+  legal_form                                                                 String?                     @db.VarChar(255)
+  latitude                                                                   Decimal?                    @db.Decimal(13, 10)
+  longitude                                                                  Decimal?                    @db.Decimal(13, 10)
+  timber_trading_partner_id                                                  String?                     @db.VarChar(255)
+  pile_number_prefix                                                         String?                     @db.VarChar(10)
+  customer_is_mandatory_for_freight_tables                                   Boolean?                    @db.Bit(1)
+  share_access_rights_for_management                                         Boolean                     @default(dbgenerated("(b'0')")) @db.Bit(1)
+  share_access_rights_for_all                                                Boolean                     @default(dbgenerated("(b'0')")) @db.Bit(1)
+  editable_for_external_users                                                Boolean                     @default(true)
+  certificate_is_mandatory_for_piles                                         Boolean                     @default(false)
+  force_pile_ownership_transfer                                              Boolean                     @default(false)
+  accounting_contact_person_id                                               String?                     @db.VarChar(255)
+  vat_rate                                                                   String?                     @db.VarChar(30)
+  delivery_note_number_is_mandatory_for_pile_removal                         Boolean                     @default(true)
+  licence_number                                                             String?                     @db.VarChar(100)
+  licence_remark                                                             String?                     @db.VarChar(100)
+  licence_valid_from                                                         DateTime?                   @db.Timestamp(0)
+  licence_valid_until                                                        DateTime?                   @db.Timestamp(0)
+  licence_valid_eternally                                                    Int                         @default(0) @db.TinyInt
+  unlicenced                                                                 Int                         @default(0) @db.TinyInt
+  created_by                                                                 String?                     @db.VarChar(50)
+  created_at                                                                 DateTime?                   @db.Timestamp(0)
+  updated_by                                                                 String?                     @db.VarChar(50)
+  updated_at                                                                 DateTime?                   @db.Timestamp(0)
+  auto_generate_project_number                                               Int                         @default(1) @db.TinyInt
+  hide_member_list                                                           Boolean                     @default(false)
+  service_mandatory_for_invoicing                                            Boolean                     @default(false)
+  partner_prefix                                                             String?                     @db.VarChar(10)
+  auto_generate_partner_number                                               Int                         @db.TinyInt
+  vat_note                                                                   String?                     @db.VarChar(100)
+  contract_is_mandatory_for_pile                                             Boolean                     @default(false)
+  customer_type                                                              String?                     @db.VarChar(200)
+  name_addition                                                              String?                     @db.VarChar(150)
+  access_rights                                                              access_rights[]
+  access_rights_invitation                                                   access_rights_invitation[]
+  bank_account                                                               bank_account[]
+  certificate                                                                certificate[]
+  contact_data                                                               contact_data[]
+  contact_person                                                             contact_person[]
+  forest_area                                                                forest_area[]
+  forest_area_parcel                                                         forest_area_parcel[]
+  invoicing_invoicing_creator_partner_idTopartner                            invoicing[]                 @relation("invoicing_creator_partner_idTopartner")
+  invoicing_invoicing_recipient_partner_idTopartner                          invoicing[]                 @relation("invoicing_recipient_partner_idTopartner")
+  partner                                                                    partner?                    @relation("partnerTopartner", fields: [timber_trading_partner_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_partner_timber_trading_partner")
+  other_partner                                                              partner[]                   @relation("partnerTopartner")
+  partner_association_partner_association_associated_partner_idTopartner     partner_association[]       @relation("partner_association_associated_partner_idTopartner") @ignore
+  partner_association_partner_association_partner_idTopartner                partner_association[]       @relation("partner_association_partner_idTopartner") @ignore
+  partner_comment                                                            partner_comment[]
+  partner_mandate_person                                                     partner_mandate_person[]
+  partner_number_partner_number_number_owner_partner_idTopartner             partner_number[]            @relation("partner_number_number_owner_partner_idTopartner")
+  partner_number_partner_number_partner_idTopartner                          partner_number[]            @relation("partner_number_partner_idTopartner")
+  partner_relationship_partner_relationship_partner_idTopartner              partner_relationship[]      @relation("partner_relationship_partner_idTopartner")
+  partner_relationship_partner_relationship_relationship_partner_idTopartner partner_relationship[]      @relation("partner_relationship_relationship_partner_idTopartner")
+  partner_service_type                                                       partner_service_type[]      @ignore
+  partner_supervisor_partner_supervisor_partner_idTopartner                  partner_supervisor[]        @relation("partner_supervisor_partner_idTopartner")
+  partner_supervisor_partner_supervisor_supervisor_partner_idTopartner       partner_supervisor[]        @relation("partner_supervisor_supervisor_partner_idTopartner")
+  partner_uploaded_document                                                  partner_uploaded_document[]
+  pile                                                                       pile[]
+
+  @@index([company_name], map: "company_name_idx")
+  @@index([timber_trading_partner_id], map: "fk_partner_timber_trading_partner")
+  @@index([partner_type], map: "partner_type_idx")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model partner_association {
+  partner_id                                                 String  @db.VarChar(255)
+  associated_partner_id                                      String  @db.VarChar(255)
+  partner_partner_association_associated_partner_idTopartner partner @relation("partner_association_associated_partner_idTopartner", fields: [associated_partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_association_associated_partner")
+  partner_partner_association_partner_idTopartner            partner @relation("partner_association_partner_idTopartner", fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_association_partner")
+
+  @@index([associated_partner_id], map: "fk_partner_association_associated_partner")
+  @@index([partner_id], map: "fk_partner_association_partner")
+  @@ignore
+}
+
+model partner_comment {
+  id              String    @id @db.VarChar(100)
+  partner_id      String    @db.VarChar(100)
+  user_id         String    @db.VarChar(100)
+  user_partner_id String    @db.VarChar(100)
+  created_at      DateTime? @db.Timestamp(0)
+  comment         String    @db.VarChar(500)
+  partner         partner   @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_comment_partner_id")
+
+  @@index([partner_id], map: "fk_partner_comment_partner_id")
+}
+
+model partner_mandate_person {
+  id                String         @id @db.VarChar(50)
+  partner_id        String         @db.VarChar(50)
+  contact_person_id String         @db.VarChar(50)
+  partner           partner        @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_mandate_partner_id")
+  contact_person    contact_person @relation(fields: [contact_person_id], references: [id], onUpdate: Restrict, map: "fk_partner_mandate_person_id")
+
+  @@index([partner_id], map: "fk_partner_mandate_partner_id")
+  @@index([contact_person_id], map: "fk_partner_mandate_person_id")
+}
+
+model partner_number {
+  id                                                      String  @id @db.VarChar(255)
+  partner_id                                              String  @db.VarChar(255)
+  number_owner_partner_id                                 String  @db.VarChar(255)
+  number                                                  String  @db.VarChar(255)
+  partner_partner_number_number_owner_partner_idTopartner partner @relation("partner_number_number_owner_partner_idTopartner", fields: [number_owner_partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_number_owner_partner_id")
+  partner_partner_number_partner_idTopartner              partner @relation("partner_number_partner_idTopartner", fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_number_partner_id")
+
+  @@index([number_owner_partner_id], map: "fk_partner_number_owner_partner_id")
+  @@index([partner_id], map: "fk_partner_number_partner_id")
+}
+
+model partner_relationship {
+  id                                                            String  @id @db.VarChar(255)
+  partner_id                                                    String  @db.VarChar(255)
+  relationship_partner_id                                       String  @db.VarChar(255)
+  partner_relationship_type                                     String  @db.VarChar(255)
+  external_partner_number                                       String? @db.VarChar(255)
+  partner_partner_relationship_partner_idTopartner              partner @relation("partner_relationship_partner_idTopartner", fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_partner_id")
+  partner_partner_relationship_relationship_partner_idTopartner partner @relation("partner_relationship_relationship_partner_idTopartner", fields: [relationship_partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_relationship_partner_id")
+
+  @@index([partner_id], map: "fk_partner_partner_id")
+  @@index([relationship_partner_id], map: "fk_partner_relationship_partner_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model partner_service_type {
+  partner_service_type String  @db.VarChar(255)
+  partner_id           String  @db.VarChar(255)
+  partner              partner @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "partner_service_type_ibfk_1")
+
+  @@index([partner_id], map: "partner_id")
+  @@ignore
+}
+
+model partner_supervisor {
+  id                                                        String         @id @db.VarChar(255)
+  partner_id                                                String         @db.VarChar(255)
+  supervisor_partner_id                                     String         @db.VarChar(255)
+  supervisor_contact_person_id                              String         @db.VarChar(255)
+  partner_partner_supervisor_partner_idTopartner            partner        @relation("partner_supervisor_partner_idTopartner", fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_id")
+  contact_person                                            contact_person @relation(fields: [supervisor_contact_person_id], references: [id], onUpdate: Restrict, map: "fk_supervisor_contact_person_id")
+  partner_partner_supervisor_supervisor_partner_idTopartner partner        @relation("partner_supervisor_supervisor_partner_idTopartner", fields: [supervisor_partner_id], references: [id], onUpdate: Restrict, map: "fk_supervisor_partner_id")
+
+  @@index([partner_id], map: "fk_partner_id")
+  @@index([supervisor_contact_person_id], map: "fk_supervisor_contact_person_id")
+  @@index([supervisor_partner_id], map: "fk_supervisor_partner_id")
+}
+
+model partner_uploaded_document {
+  id            String  @id @db.VarChar(255)
+  partner_id    String  @db.VarChar(255)
+  name          String  @db.VarChar(255)
+  path          String  @db.VarChar(255)
+  document_type String  @db.VarChar(255)
+  partner       partner @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "fk_partner_partner_uploaded_document")
+
+  @@index([partner_id], map: "fk_partner_partner_uploaded_document")
+}
+
+model pile {
+  id                                           String                          @id @db.VarChar(255)
+  list_id                                      String?                         @db.VarChar(255)
+  project_id                                   String?                         @db.VarChar(255)
+  pile_number                                  String?                         @db.VarChar(70)
+  forest_owner_id                              String                          @db.VarChar(255)
+  wood_buyer_id                                String?                         @db.VarChar(255)
+  forest_id                                    String?                         @db.VarChar(50)
+  min_diameter_cm                              Int?
+  max_diameter_cm                              Int?
+  logistic_status                              Int
+  registration_date                            DateTime?                       @db.Timestamp(0)
+  close_date                                   DateTime?                       @db.Timestamp(0)
+  vibrate_factor                               Float?                          @db.Float
+  comment                                      String?                         @db.VarChar(500)
+  longitude                                    Decimal?                        @db.Decimal(13, 10)
+  latitude                                     Decimal?                        @db.Decimal(13, 10)
+  status                                       Int
+  status_date                                  DateTime?                       @db.Timestamp(0)
+  measurement_type                             Int                             @default(0)
+  measurement_unit                             Int                             @default(0)
+  avg_diameter_cm                              Int?
+  avg_length_m                                 Decimal?                        @db.Decimal(8, 2)
+  amount_rm                                    Decimal?                        @db.Decimal(13, 4)
+  buying_unit                                  Int?
+  inventory_number                             String?                         @db.VarChar(70)
+  logistic_status_date                         DateTime?                       @db.Timestamp(0)
+  logistic_status_user_id                      String?                         @db.VarChar(50)
+  status_user_id                               String?                         @db.VarChar(50)
+  road_surface_condition                       Int?
+  road_driving_possibility                     Int?
+  road_loading_possibility                     Int?
+  road_condition_comment                       String?                         @db.VarChar(255)
+  front_width_m                                Float?                          @db.Float
+  front_section_width_m                        Float?                          @db.Float
+  back_width_m                                 Float?                          @db.Float
+  back_section_width_m                         Float?                          @db.Float
+  logistic_ready_status                        String?                         @db.VarChar(30)
+  fsc_pool                                     Boolean
+  forest_owner_cost                            Float?                          @db.Float
+  forest_owner_cost_with_discount              Float?                          @db.Float
+  forest_owner_payment_date                    DateTime?                       @db.Timestamp(0)
+  forest_owner_sale_type                       String?                         @db.VarChar(30)
+  inventory_amount_rm                          Decimal?                        @db.Decimal(13, 4)
+  state                                        String?                         @db.VarChar(70)
+  district                                     String?                         @db.VarChar(70)
+  nearest_city                                 String?                         @db.VarChar(100)
+  inventory_remaining_amount_rm                Decimal?                        @db.Decimal(13, 4)
+  section_c_amount_rm                          Decimal?                        @db.Decimal(13, 4)
+  age_from                                     Int?
+  age_to                                       Int?
+  conversion_factor                            Float?                          @db.Float
+  forest_owner_price_per_unit                  Decimal?                        @db.Decimal(13, 4)
+  forest_owner_price_per_unit_with_discount    Decimal?                        @db.Decimal(13, 4)
+  length_addition_m                            Decimal?                        @db.Decimal(8, 2)
+  forest_owner_contact_id                      String?                         @db.VarChar(50)
+  forest_entrance_longitude                    Decimal?                        @db.Decimal(13, 10)
+  forest_entrance_latitude                     Decimal?                        @db.Decimal(13, 10)
+  excessively_removed_amount_rm                Decimal?                        @db.Decimal(13, 4)
+  registration_user_id                         String?                         @db.VarChar(50)
+  parcel                                       String?                         @db.VarChar(100)
+  forest_department                            String?                         @db.VarChar(100)
+  timber_trading_partner_id                    String?                         @db.VarChar(50)
+  tech_support_partner_id                      String?                         @db.VarChar(50)
+  pile_damage                                  Boolean
+  pile_damage_type                             String?                         @db.VarChar(30)
+  pile_damage_percentage                       Float?                          @db.Float
+  pile_damage_comment                          String?                         @db.VarChar(255)
+  forest_owner_projected_cost                  Decimal?                        @db.Decimal(13, 4)
+  forest_owner_projected_price_per_unit        Decimal?                        @db.Decimal(13, 4)
+  contract_id                                  String?                         @db.VarChar(50)
+  price_book_id                                String?                         @db.VarChar(50)
+  create_date                                  DateTime?                       @db.Timestamp(0)
+  update_date                                  DateTime?                       @db.Timestamp(0)
+  update_user_id                               String?                         @db.VarChar(50)
+  remaining_amount_rm                          Decimal?                        @db.Decimal(13, 4)
+  ownership_transferred                        Boolean                         @default(false)
+  non_certified_wood                           Boolean                         @default(false)
+  forest_owner_pile_status                     String?                         @db.VarChar(30)
+  original_pile_id                             String?                         @db.VarChar(50)
+  offered_pile_id                              String?                         @db.VarChar(50)
+  offer                                        Boolean                         @default(false)
+  section_c_part_amount_rm                     Decimal?                        @db.Decimal(13, 4)
+  section_c_part_count                         Int?
+  harvest_date                                 DateTime?                       @db.Timestamp(0)
+  use_gross_amount                             Boolean?                        @default(true)
+  last_pile_removal_date                       DateTime?                       @db.Timestamp(0)
+  days_until_disposed                          Int?
+  days_until_done                              Int?
+  customer_id                                  String?                         @db.VarChar(255)
+  timber_trading_projected_revenues            Decimal?                        @db.Decimal(13, 4)
+  timber_trading_revenues                      Decimal?                        @db.Decimal(13, 4)
+  timber_trading_revenues_with_discount        Decimal?                        @db.Decimal(13, 4)
+  contract_measurement_type                    String?                         @default("UNDEFINED") @db.VarChar(30)
+  forest_measurement_type                      String?                         @db.VarChar(100)
+  sales_amount_auto_rm                         Decimal?                        @db.Decimal(13, 4)
+  sales_amount_rm                              Decimal?                        @db.Decimal(13, 4)
+  sales_amount_type                            String?                         @db.VarChar(20)
+  invoicing_position                           invoicing_position[]
+  contract                                     contract?                       @relation(fields: [contract_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_contract")
+  partner                                      partner?                        @relation(fields: [customer_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_customer")
+  pile_list                                    pile_list?                      @relation(fields: [list_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_list")
+  project                                      project?                        @relation(fields: [project_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_project")
+  pile_certificate                             pile_certificate[]
+  pile_comment                                 pile_comment[]
+  pile_harvest_yield                           pile_harvest_yield[]
+  pile_harvest_yield_department                pile_harvest_yield_department[]
+  pile_harvest_yield_parcel                    pile_harvest_yield_parcel[]
+  pile_intended_customer                       pile_intended_customer[]
+  pile_logistic_status_history                 pile_logistic_status_history[]
+  pile_offer_pile_offer_pile_idTopile          pile_offer[]                    @relation("pile_offer_pile_idTopile")
+  pile_offer_pile_offer_original_pile_idTopile pile_offer[]                    @relation("pile_offer_original_pile_idTopile")
+  pile_removal                                 pile_removal[]
+  pile_section                                 pile_section[]
+  pile_sharing                                 pile_sharing[]
+  pile_species                                 pile_species[]
+  pile_species_actual_entry                    pile_species_actual_entry[]
+  pile_species_entry                           pile_species_entry[]
+  pile_task                                    pile_task[]
+  pile_uploaded_document                       pile_uploaded_document[]
+  sale_entry                                   sale_entry[]
+  transport_order_entry                        transport_order_entry[]
+  wood                                         wood[]
+
+  @@index([contract_id], map: "fk_pile_contract")
+  @@index([customer_id], map: "fk_pile_customer")
+  @@index([list_id], map: "fk_pile_list")
+  @@index([project_id], map: "fk_pile_project")
+  @@index([forest_owner_id], map: "forest_owner_idx")
+  @@index([logistic_status], map: "logistic_status_idx")
+  @@index([wood_buyer_id], map: "wood_buyer_idx")
+}
+
+model pile_certificate {
+  id             String  @id @db.VarChar(255)
+  pile_id        String? @db.VarChar(255)
+  certificate_id String? @db.VarChar(255)
+  pile           pile?   @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_pile_certificate_fk")
+
+  @@index([pile_id], map: "pile_pile_certificate_fk")
+}
+
+model pile_comment {
+  id           String    @id @db.VarChar(255)
+  pile_id      String?   @db.VarChar(255)
+  user_id      String?   @db.VarChar(255)
+  created_date DateTime? @db.Timestamp(0)
+  comment      String?   @db.VarChar(500)
+  pile         pile?     @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_pile_comment_fk")
+
+  @@index([pile_id], map: "pile_pile_comment_fk")
+}
+
+model pile_harvest_yield {
+  id                   String  @id @db.VarChar(50)
+  pile_id              String  @db.VarChar(255)
+  parcel_id            String  @db.VarChar(100)
+  cadastral_district   String  @db.VarChar(100)
+  parcel               String  @db.VarChar(100)
+  plot                 String  @db.VarChar(100)
+  percentage           Float   @db.Float
+  forestry_district_id String? @db.VarChar(255)
+  department_name      String? @db.VarChar(100)
+  subdepartment_name   String? @db.VarChar(100)
+  subarea_name         String? @db.VarChar(100)
+  pile                 pile    @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_thy_pile")
+
+  @@index([pile_id], map: "fk_thy_pile")
+}
+
+model pile_harvest_yield_department {
+  id                          String                   @id @db.VarChar(50)
+  amount_rm                   Decimal                  @db.Decimal(13, 4)
+  percentage                  Float                    @db.Float
+  harvest_yield_department_id String                   @db.VarChar(50)
+  pile_id                     String                   @db.VarChar(50)
+  harvest_yield_department    harvest_yield_department @relation(fields: [harvest_yield_department_id], references: [id], onUpdate: Restrict, map: "fk_p_harvest_yield_dep_harvest_yield_dep")
+  pile                        pile                     @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_p_harvest_yield_dep_pile")
+
+  @@index([harvest_yield_department_id], map: "fk_p_harvest_yield_dep_harvest_yield_dep")
+  @@index([pile_id], map: "fk_p_harvest_yield_dep_pile")
+}
+
+model pile_harvest_yield_parcel {
+  id                      String               @id @db.VarChar(50)
+  amount_rm               Decimal              @db.Decimal(13, 4)
+  percentage              Float                @db.Float
+  harvest_yield_parcel_id String               @db.VarChar(50)
+  pile_id                 String               @db.VarChar(50)
+  harvest_yield_parcel    harvest_yield_parcel @relation(fields: [harvest_yield_parcel_id], references: [id], onUpdate: Restrict, map: "fk_p_harvest_yield_parc_harvest_yield_parc")
+  pile                    pile                 @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_p_harvest_yield_parc_pile")
+
+  @@index([harvest_yield_parcel_id], map: "fk_p_harvest_yield_parc_harvest_yield_parc")
+  @@index([pile_id], map: "fk_p_harvest_yield_parc_pile")
+}
+
+model pile_intended_customer {
+  id          String @id @db.VarChar(255)
+  pile_id     String @db.VarChar(255)
+  customer_id String @db.VarChar(255)
+  pile        pile   @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "pile_pile_intended_customer_fk")
+
+  @@index([pile_id], map: "pile_pile_intended_customer_fk")
+}
+
+model pile_list {
+  id              String    @id @db.VarChar(255)
+  name            String    @db.VarChar(255)
+  forest_owner_id String    @db.VarChar(255)
+  wood_buyer_id   String?   @db.VarChar(255)
+  creation_date   DateTime? @db.Date
+  status          Int
+  project_id      String?   @db.VarChar(255)
+  comment         String?   @db.VarChar(255)
+  pile            pile[]
+  project         project?  @relation(fields: [project_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_list_ibfk_1")
+
+  @@index([forest_owner_id], map: "forest_owner_idx")
+  @@index([project_id], map: "project_id")
+  @@index([wood_buyer_id], map: "wood_buyer_idx")
+}
+
+model pile_logistic_status_history {
+  id                      String    @id @db.VarChar(255)
+  pile_id                 String?   @db.VarChar(255)
+  date_from               DateTime? @db.Timestamp(0)
+  date_until              DateTime? @db.Timestamp(0)
+  logistic_status_user_id String?   @db.VarChar(255)
+  logistic_status         Int
+  pile                    pile?     @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_pile_logistic_status_history_fk")
+
+  @@index([pile_id], map: "pile_pile_logistic_status_history_fk")
+}
+
+model pile_number_config {
+  id          String  @id @db.VarChar(50)
+  partner_id  String  @db.VarChar(50)
+  enabled     Boolean @default(false)
+  prefix      String  @db.VarChar(10)
+  year_format Int     @default(0)
+  separator1  String? @db.VarChar(5)
+  separator2  String? @db.VarChar(5)
+  digits      Int     @default(5)
+  max_number  Int     @default(0)
+}
+
+model pile_numbers {
+  id              String @id @db.VarChar(255)
+  forest_owner_id String @db.VarChar(255)
+  wood_buyer_id   String @db.VarChar(255)
+  max_number      Int
+}
+
+model pile_offer {
+  id                                     String    @id @db.VarChar(50)
+  seller_partner_id                      String    @db.VarChar(50)
+  seller_contact_person_id               String    @db.VarChar(50)
+  seller_deleted                         Boolean   @default(false)
+  buyer_partner_id                       String    @db.VarChar(50)
+  buyer_contact_person_id                String    @db.VarChar(50)
+  buyer_deleted                          Boolean   @default(false)
+  pile_id                                String?   @db.VarChar(255)
+  original_pile_id                       String?   @db.VarChar(255)
+  creation_date                          DateTime? @db.Timestamp(0)
+  offer_status                           String    @db.VarChar(30)
+  nearest_city                           String?   @db.VarChar(100)
+  longitude                              Decimal?  @db.Decimal(13, 10)
+  latitude                               Decimal?  @db.Decimal(13, 10)
+  wood_type                              String?   @db.VarChar(255)
+  wood_kind                              String?   @db.VarChar(255)
+  wood_quality                           String?   @db.VarChar(255)
+  amount_rm                              Decimal?  @db.Decimal(13, 4)
+  offer_type                             String    @default("TIMBER_TRADE") @db.VarChar(30)
+  create_removal                         Int?      @default(0) @db.TinyInt
+  pile_pile_offer_pile_idTopile          pile?     @relation("pile_offer_pile_idTopile", fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_offer")
+  pile_pile_offer_original_pile_idTopile pile?     @relation("pile_offer_original_pile_idTopile", fields: [original_pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_offer_original")
+
+  @@index([pile_id], map: "fk_pile_offer")
+  @@index([original_pile_id], map: "fk_pile_offer_original")
+}
+
+model pile_removal {
+  id                      String           @id @db.VarChar(255)
+  date                    DateTime?        @db.Timestamp(0)
+  amount_rm               Decimal?         @db.Decimal(13, 4)
+  wood_type               Int
+  pile_id                 String           @db.VarChar(50)
+  transport_order_id      String?          @db.VarChar(255)
+  customer_id             String?          @db.VarChar(255)
+  buying_unit             Int?
+  delivery_bill_number    String?          @db.VarChar(255)
+  creation_user_id        String?          @db.VarChar(255)
+  creation_date           DateTime?        @db.Timestamp(0)
+  creation_partner_id     String?          @db.VarChar(50)
+  factory_delivery_number String?          @db.VarChar(255)
+  pile_removal_origin     String?          @db.VarChar(60)
+  disposed_amount_rm      Decimal?         @db.Decimal(13, 4)
+  sale_entry_id           String?          @db.VarChar(50)
+  pile                    pile             @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_removal_pile")
+  transport_order         transport_order? @relation(fields: [transport_order_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_removal_transport_order_fk")
+  wood                    wood[]
+
+  @@index([pile_id], map: "fk_pile_removal_pile")
+  @@index([transport_order_id], map: "pile_removal_transport_order_fk")
+}
+
+model pile_section {
+  id       String @id @db.VarChar(255)
+  pile_id  String @db.VarChar(255)
+  s_type   Int
+  s_index  Int
+  height_m Float  @db.Float
+  pile     pile   @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_section")
+
+  @@index([pile_id], map: "fk_pile_section")
+}
+
+model pile_sharing {
+  id         String @id @db.VarChar(255)
+  pile_id    String @db.VarChar(255)
+  partner_id String @db.VarChar(255)
+  pile       pile   @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_pile_sharing")
+
+  @@index([pile_id], map: "fk_pile_pile_sharing")
+}
+
+model pile_species {
+  id                  String   @id @db.VarChar(255)
+  pile_id             String   @db.VarChar(255)
+  wood_type           Int
+  amount_rm           Decimal? @db.Decimal(13, 4)
+  amount_percentage   Float?   @db.Float
+  remaining_amount_rm Decimal? @db.Decimal(13, 4)
+  number_of_pieces    Int?
+  pile                pile     @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_species")
+
+  @@index([pile_id], map: "fk_pile_species")
+}
+
+model pile_species_actual_entry {
+  id                String  @id @db.VarChar(255)
+  pile_id           String  @db.VarChar(255)
+  wood_type         Int?
+  wood_quality      Int?
+  wood_kind         Int?
+  amount_percentage Float?  @db.Float
+  species_entry_id  String? @db.VarChar(255)
+  pile              pile    @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pgc_pile_id")
+
+  @@index([pile_id], map: "fk_pgc_pile_id")
+}
+
+model pile_species_entry {
+  id                  String      @id @db.VarChar(255)
+  pile_id             String      @db.VarChar(255)
+  wood_type           Int
+  wood_kind           String      @db.VarChar(10)
+  wood_quality        Int
+  amount_rm           Decimal     @db.Decimal(13, 4)
+  amount_percentage   Float       @db.Float
+  number_of_pieces    Int?
+  price_book_id       String?     @db.VarChar(255)
+  product_type_fsc    String?     @db.VarChar(255)
+  wood_strength_class String?     @db.VarChar(255)
+  pile                pile        @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_species_entry_pile")
+  price_book          price_book? @relation(fields: [price_book_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_species_entry_price_book")
+
+  @@index([pile_id], map: "fk_pile_species_entry_pile")
+  @@index([price_book_id], map: "fk_pile_species_entry_price_book")
+}
+
+model pile_task {
+  id                           String                     @id @db.VarChar(255)
+  pile_id                      String?                    @db.VarChar(255)
+  task_type                    String?                    @db.VarChar(255)
+  partner_id                   String?                    @db.VarChar(255)
+  technique                    String?                    @db.VarChar(255)
+  payment_date                 DateTime?                  @db.Timestamp(0)
+  cost_net                     Float?                     @db.Float
+  cost_with_discount           Float?                     @db.Float
+  certificate_id               String?                    @db.VarChar(255)
+  price_per_unit               Decimal?                   @db.Decimal(13, 4)
+  price_per_unit_with_discount Decimal?                   @db.Decimal(13, 4)
+  projected_cost               Decimal?                   @db.Decimal(13, 4)
+  projected_price_per_unit     Decimal?                   @db.Decimal(13, 4)
+  price_book_id                String?                    @db.VarChar(50)
+  contract_id                  String?                    @db.VarChar(50)
+  invoicing_position_entry     invoicing_position_entry[]
+  contract                     contract?                  @relation(fields: [contract_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_task_contract")
+  forestry_price_book          forestry_price_book?       @relation(fields: [price_book_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_pile_task_price_book")
+  pile                         pile?                      @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_pile_task_fk")
+
+  @@index([contract_id], map: "fk_pile_task_contract")
+  @@index([price_book_id], map: "fk_pile_task_price_book")
+  @@index([pile_id], map: "pile_pile_task_fk")
+}
+
+model pile_uploaded_document {
+  id       String @id @db.VarChar(255)
+  pile_id  String @db.VarChar(255)
+  name     String @db.VarChar(255)
+  path     String @db.VarChar(255)
+  category String @db.VarChar(255)
+  pile     pile   @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "fk_pile_pile_uploaded_document")
+
+  @@index([pile_id], map: "fk_pile_pile_uploaded_document")
+}
+
+model poi {
+  id                    String                  @id @db.VarChar(50)
+  creator_user_id       String                  @db.VarChar(50)
+  creator_partner_id    String                  @db.VarChar(50)
+  name                  String?                 @db.VarChar(100)
+  longitude             Decimal                 @db.Decimal(13, 4)
+  latitude              Decimal                 @db.Decimal(13, 4)
+  type_id               String                  @db.VarChar(50)
+  description           String?                 @db.VarChar(5000)
+  access_level          String                  @default("PARTNER") @db.VarChar(50)
+  created_at            DateTime?               @db.Timestamp(0)
+  poi_comment           poi_comment[]
+  poi_geometry          poi_geometry[]
+  poi_uploaded_document poi_uploaded_document[]
+}
+
+model poi_comment {
+  id         String    @id @db.VarChar(50)
+  poi_id     String    @db.VarChar(50)
+  created_at DateTime? @db.Timestamp(0)
+  comment    String    @db.VarChar(500)
+  creator_id String    @db.VarChar(50)
+  poi        poi       @relation(fields: [poi_id], references: [id], onUpdate: Restrict, map: "fk_poi_poi_comment")
+
+  @@index([poi_id], map: "fk_poi_poi_comment")
+}
+
+model poi_geometry {
+  id            String  @id @db.VarChar(50)
+  poi_id        String  @db.VarChar(50)
+  geometry_type String? @db.VarChar(50)
+  geometry      String? @db.Text
+  poi           poi     @relation(fields: [poi_id], references: [id], onUpdate: Restrict, map: "fk_poi_poi_geometry")
+
+  @@index([poi_id], map: "fk_poi_poi_geometry")
+}
+
+model poi_type {
+  id          String  @id @db.VarChar(50)
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(120)
+  symbol      String? @db.VarChar(100)
+  color       String? @db.VarChar(30)
+}
+
+model poi_uploaded_document {
+  id     String @id @db.VarChar(255)
+  poi_id String @db.VarChar(255)
+  name   String @db.VarChar(255)
+  path   String @db.VarChar(255)
+  poi    poi    @relation(fields: [poi_id], references: [id], onUpdate: Restrict, map: "fk_poi_poi_uploaded_document")
+
+  @@index([poi_id], map: "fk_poi_poi_uploaded_document")
+}
+
+model price_book {
+  id                        String               @id @db.VarChar(255)
+  length_m                  Float?               @db.Float
+  diameter_cm               Int?
+  kind                      Int
+  tree_species              Int?
+  quality                   Int
+  price                     Float?               @db.Float
+  contract_id               String?              @db.VarChar(255)
+  strength_class            String?              @db.VarChar(255)
+  buying_unit               String?              @db.VarChar(255)
+  order_number              Int                  @default(0)
+  read_only                 Boolean              @default(false)
+  length_addition_m         Decimal?             @db.Decimal(8, 2)
+  minimum_diameter          Int?
+  maximum_diameter          Int?
+  minimum_tree_top          Int?
+  maximum_tree_top          Int?
+  trunk_base                Int?
+  strength_class_plus       Boolean              @default(false)
+  contract_measurement_type String?              @default("UNDEFINED") @db.VarChar(30)
+  pile_species_entry        pile_species_entry[]
+  contract                  contract?            @relation(fields: [contract_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "price_book_contract_fk")
+
+  @@index([contract_id], map: "price_book_contract_fk")
+}
+
+model project {
+  id                      String              @id @db.VarChar(255)
+  name                    String              @db.VarChar(255)
+  project_number          String?             @db.VarChar(255)
+  project_status          Int
+  wood_buyer_id           String?             @db.VarChar(255)
+  start_date              DateTime?           @db.Timestamp(0)
+  forest_owner_id         String?             @db.VarChar(50)
+  timber_trade_partner_id String              @db.VarChar(50)
+  close_date              DateTime?           @db.Timestamp(0)
+  invoicing_project       invoicing_project[] @ignore
+  pile                    pile[]
+  pile_list               pile_list[]
+
+  @@index([wood_buyer_id], map: "wood_buyer_idx")
+}
+
+model sale {
+  id                             String                  @id @db.VarChar(255)
+  system_number                  String?                 @db.VarChar(80)
+  user_defined_number            String?                 @db.VarChar(80)
+  business_year                  Int?
+  sale_entry_number              String?                 @db.VarChar(50)
+  lot_code_purchase_document_mac String?                 @db.VarChar(50)
+  customer_id                    String?                 @db.VarChar(50)
+  seller_id                      String?                 @db.VarChar(50)
+  delivery_date                  DateTime?               @db.Timestamp(0)
+  reference_number               String?                 @db.VarChar(50)
+  creator_partner_id             String?                 @db.VarChar(50)
+  created_by                     String?                 @db.VarChar(50)
+  created_at                     DateTime?               @db.Timestamp(0)
+  updated_by                     String?                 @db.VarChar(50)
+  updater_partner_id             String?                 @db.VarChar(50)
+  updated_at                     DateTime?               @db.Timestamp(0)
+  system_number_counter          Int?
+  sale_status                    String?                 @db.VarChar(30)
+  measurement_type               String?                 @db.VarChar(50)
+  sale_entry                     sale_entry[]
+  sale_reference_number          sale_reference_number[]
+}
+
+model sale_entry {
+  id                  String            @id @db.VarChar(255)
+  sale_id             String?           @db.VarChar(255)
+  pile_id             String?           @db.VarChar(255)
+  wood_type           Int?
+  amount_rm           Decimal?          @db.Decimal(13, 4)
+  buying_unit         Int?
+  system_number       String?           @db.VarChar(80)
+  user_defined_number String?           @db.VarChar(80)
+  wood_kind           String?           @db.VarChar(20)
+  wood_quality        String?           @db.VarChar(20)
+  pile_length_m       Decimal?          @db.Decimal(8, 2)
+  nb_pieces           Int?
+  price_per_unit      Float             @default(0) @db.Float
+  total_price         Float             @default(0) @db.Float
+  reference_field     String?           @db.VarChar(100)
+  reference_number    String?           @db.VarChar(100)
+  pile_removal_id     String?           @db.VarChar(50)
+  pile                pile?             @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "pile_sale_entry_fk")
+  sale                sale?             @relation(fields: [sale_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sale_sale_entry_fk")
+  sale_wood_entry     sale_wood_entry[]
+
+  @@index([pile_id], map: "pile_sale_entry_fk")
+  @@index([sale_id], map: "sale_sale_entry_fk")
+}
+
+model sale_reference_number {
+  id               String  @id @db.VarChar(50)
+  sale_id          String  @db.VarChar(50)
+  reference_field  String? @db.VarChar(100)
+  reference_number String? @db.VarChar(100)
+  sale             sale    @relation(fields: [sale_id], references: [id], onUpdate: Restrict, map: "fk_sale_reference_number_sale")
+
+  @@index([sale_id], map: "fk_sale_reference_number_sale")
+}
+
+model sale_wood_entry {
+  id            String      @id @db.VarChar(255)
+  sale_entry_id String?     @db.VarChar(255)
+  wood_id       String?     @db.VarChar(255)
+  sale_entry    sale_entry? @relation(fields: [sale_entry_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_swe_sale_entry")
+  wood          wood?       @relation(fields: [wood_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_swe_wood")
+
+  @@index([sale_entry_id], map: "fk_swe_sale_entry")
+  @@index([wood_id], map: "fk_swe_wood")
+}
+
+model scheduled_notification {
+  id                String    @id @db.VarChar(50)
+  notification_type String    @db.VarChar(50)
+  last_checked_date DateTime? @db.Timestamp(0)
+}
+
+model transport_order {
+  id                                String                              @id @db.VarChar(255)
+  customer_id                       String?                             @db.VarChar(255)
+  logistics_company_id              String?                             @db.VarChar(255)
+  transport_order_number            String?                             @db.VarChar(255)
+  date_of_order_created             DateTime?                           @db.Timestamp(0)
+  date_of_wood_availability         DateTime?                           @db.Timestamp(0)
+  date_of_pickup_deadline           DateTime?                           @db.Timestamp(0)
+  delivery_note_number_customer     String?                             @db.VarChar(255)
+  delivery_note_number_biocen       String?                             @db.VarChar(255)
+  delivery_notes_unknown            Boolean
+  delivery_note_file                String?                             @db.VarChar(255)
+  delivery_date                     DateTime?                           @db.Timestamp(0)
+  logistic_amount_rm                Float?                              @db.Float
+  status                            String?                             @db.VarChar(255)
+  cost                              Float?                              @db.Float
+  route_km                          Float?                              @db.Float
+  freight_zone_id                   String?                             @db.VarChar(255)
+  removals_created                  DateTime?                           @db.Timestamp(0)
+  logistic_amount_unit              Int                                 @default(0)
+  creator_partner_id                String?                             @db.VarChar(50)
+  created_by                        String?                             @db.VarChar(50)
+  created_at                        DateTime?                           @db.Timestamp(0)
+  updated_by                        String?                             @db.VarChar(50)
+  updated_at                        DateTime?                           @db.Timestamp(0)
+  storage_id                        String?                             @db.VarChar(50)
+  storage_destination               Boolean                             @default(false)
+  pile_removal                      pile_removal[]
+  freight_zone                      freight_zone?                       @relation(fields: [freight_zone_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "transport_order_freight_zone_fk")
+  transport_order_comment           transport_order_comment[]
+  transport_order_contact_data      transport_order_contact_data[]
+  transport_order_entry             transport_order_entry[]
+  transport_order_uploaded_document transport_order_uploaded_document[]
+
+  @@index([freight_zone_id], map: "transport_order_freight_zone_fk")
+}
+
+model transport_order_comment {
+  id                 String           @id @db.VarChar(255)
+  transport_order_id String?          @db.VarChar(255)
+  date               DateTime?        @db.Timestamp(0)
+  user_id            String?          @db.VarChar(255)
+  comment            String?          @db.VarChar(500)
+  transport_order    transport_order? @relation(fields: [transport_order_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_toc_transport_order")
+
+  @@index([transport_order_id], map: "fk_toc_transport_order")
+}
+
+model transport_order_contact_data {
+  id                             String          @id @db.VarChar(50)
+  transport_order_id             String          @db.VarChar(50)
+  company_name                   String          @db.VarChar(100)
+  partner_number                 String?         @db.VarChar(50)
+  country_code                   String?         @db.VarChar(50)
+  postcode                       String?         @db.VarChar(50)
+  city                           String?         @db.VarChar(100)
+  address_line                   String?         @db.VarChar(255)
+  email                          String?         @db.VarChar(100)
+  landline_number                String?         @db.VarChar(100)
+  fax_number                     String?         @db.VarChar(100)
+  homepage                       String?         @db.VarChar(100)
+  management                     String?         @db.VarChar(100)
+  management_local_court         String?         @db.VarChar(100)
+  management_registration_number String?         @db.VarChar(100)
+  vat_rate                       String?         @db.VarChar(100)
+  vat_note                       String?         @db.VarChar(100)
+  longitude                      Decimal?        @db.Decimal(13, 10)
+  latitude                       Decimal?        @db.Decimal(13, 10)
+  licence_number                 String?         @db.VarChar(100)
+  licence_remark                 String?         @db.VarChar(100)
+  licence_valid_from             DateTime?       @db.Timestamp(0)
+  licence_valid_until            DateTime        @default(dbgenerated("('0000-00-00 00:00:00')")) @db.Timestamp(0)
+  licence_valid_eternally        Boolean?
+  state                          String?         @db.VarChar(100)
+  district                       String?         @db.VarChar(100)
+  parcel                         String?         @db.VarChar(100)
+  party                          String?         @db.VarChar(50)
+  name_addition                  String?         @db.VarChar(150)
+  transport_order                transport_order @relation(fields: [transport_order_id], references: [id], onUpdate: Restrict, map: "fk_transport_order_contact_data")
+
+  @@index([transport_order_id], map: "fk_transport_order_contact_data")
+}
+
+model transport_order_entry {
+  id                       String                 @id @db.VarChar(255)
+  wood_type                Int?
+  amount_rm                Decimal?               @db.Decimal(13, 4)
+  distance_to_customer_km  Int?
+  transport_order_id       String?                @db.VarChar(255)
+  pile_id                  String?                @db.VarChar(255)
+  freight_zone_entry_index String?                @db.VarChar(255)
+  buying_unit              Int?
+  additional_amount        Int?
+  dispose_amount_rm        Decimal?               @db.Decimal(13, 4)
+  quality                  String?                @db.VarChar(50)
+  kind                     String?                @db.VarChar(50)
+  cost                     Float?                 @db.Float
+  delivery_bill_number     String?                @db.VarChar(255)
+  wood_types               String?                @db.VarChar(255)
+  pile                     pile?                  @relation(fields: [pile_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_toe_pile")
+  transport_order          transport_order?       @relation(fields: [transport_order_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_toe_transport_order")
+  transport_wood_entry     transport_wood_entry[]
+
+  @@index([pile_id], map: "fk_toe_pile")
+  @@index([transport_order_id], map: "fk_toe_transport_order")
+}
+
+model transport_order_number {
+  id          String @id @db.VarChar(255)
+  year        Int
+  month       Int
+  next_number Int
+
+  @@unique([year, month], map: "year_month_uk")
+}
+
+model transport_order_uploaded_document {
+  id                 String          @id @db.VarChar(255)
+  transport_order_id String          @db.VarChar(255)
+  name               String          @db.VarChar(255)
+  path               String          @db.VarChar(255)
+  transport_order    transport_order @relation(fields: [transport_order_id], references: [id], onUpdate: Restrict, map: "fk_transport_order_transport_order_uploaded_document")
+
+  @@index([transport_order_id], map: "fk_transport_order_transport_order_uploaded_document")
+}
+
+model transport_wood_entry {
+  id                       String                 @id @db.VarChar(255)
+  transport_order_entry_id String?                @db.VarChar(255)
+  wood_id                  String?                @db.VarChar(255)
+  transport_order_entry    transport_order_entry? @relation(fields: [transport_order_entry_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_twe_transport_order_entry")
+  wood                     wood?                  @relation(fields: [wood_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_twe_wood")
+
+  @@index([transport_order_entry_id], map: "fk_twe_transport_order_entry")
+  @@index([wood_id], map: "fk_twe_wood")
+}
+
+model wood {
+  id                    String                 @id @db.VarChar(255)
+  pile_id               String                 @db.VarChar(255)
+  wood_type             Int?
+  quality               Int
+  kind                  String                 @db.VarChar(10)
+  length_m              Decimal?               @db.Decimal(8, 2)
+  amount_rm             Decimal?               @db.Decimal(13, 4)
+  diameter_cm           Int?
+  buying_unit           Int?
+  pile_removal_id       String?                @db.VarChar(255)
+  wood_number           String?                @db.VarChar(255)
+  fsc_pool              Boolean
+  bracket               Boolean?
+  manual_wood_number    String?                @db.VarChar(255)
+  length_addition_m     Decimal?               @db.Decimal(8, 2)
+  remove_bark           Boolean
+  diameter_without_bark Int?
+  price_book_id         String?                @db.VarChar(255)
+  sale_wood_entry       sale_wood_entry[]
+  transport_wood_entry  transport_wood_entry[]
+  pile_removal          pile_removal?          @relation(fields: [pile_removal_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_wood_pile_removal")
+  pile                  pile                   @relation(fields: [pile_id], references: [id], onUpdate: Restrict, map: "wood_ibfk_1")
+
+  @@index([pile_removal_id], map: "fk_wood_pile_removal")
+  @@index([pile_id], map: "pile_id")
+}

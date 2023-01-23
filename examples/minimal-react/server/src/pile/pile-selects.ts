@@ -1,0 +1,11 @@
+import {
+  PILE_AMOUNT_RM,
+  PILE_EXCESSIVELY_REMOVED_AMOUNT_RM,
+  PILE_OVER_UNDER_SIZE,
+  PILE_REMAINING_AMOUNT_RM,
+  PILE_SERVICE_COST,
+} from './pile-keys';
+
+export const SELECT_PILE_ID = 'p.id';
+export const SELECT_PILE_SERVICE_COST = `SUM(IF(t.cost_with_discount is not null, t.cost_with_discount, t.cost_net)) AS ${PILE_SERVICE_COST}`;
+export const SELECT_PILE_OVER_UNDER_SIZE = `(((${PILE_REMAINING_AMOUNT_RM}-${PILE_EXCESSIVELY_REMOVED_AMOUNT_RM})/${PILE_AMOUNT_RM})*100) AS ${PILE_OVER_UNDER_SIZE}`;

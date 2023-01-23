@@ -1,0 +1,276 @@
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb://root:rootpwd@localhost:27017/smart-forester?authSource=admin"
+  // url      = "mongodb://root:rootpwd@mongo:27017/smart-forester?authSource=admin"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/mongo"
+}
+
+type ForestManagement_contactpersonAccessRights {
+partnerId String
+}
+
+type Map_configLayers {
+name String
+options Map_configLayersOptions[]
+}
+
+type Map_configLayersOptions {
+id String @map("_id")
+value Boolean
+}
+
+type Pile_contactpersonAccessRights {
+partnerId String
+}
+
+type Pile_mapTreeSpecies {
+amountPercentage Float
+woodKind String
+woodQuality String
+woodType String
+}
+
+type Pile_mapWoodSpecies {
+woodKinds String[]
+woodQualities String[]
+/// Multiple data types found: Array(String): 57_1%, Array(Unknown): 42_9% out of 7 sampled entries
+woodTypes Json
+}
+
+type pile_table_preferencesColumns {
+id String
+name String
+width Float
+}
+
+type pile_user_configCopyConfig {
+avgDiameter Boolean
+avgLength Boolean
+comments Boolean
+contract Boolean
+district Boolean
+forestArea Boolean
+forestDepartment Boolean
+forestEntrance Boolean
+forestOwner Boolean
+forestOwnerCertificate Boolean
+forestOwnerContactPerson Boolean
+intendedCustomer Boolean
+kind Boolean
+list Boolean
+logisticReadyStatus Boolean
+maxDiameter Boolean
+minDiameter Boolean
+nearestCity Boolean
+parcel Boolean
+pileDamage Boolean
+pilePosition Boolean
+project Boolean
+quality Boolean
+roadConditionComment Boolean
+roadDrivingPossibility Boolean
+roadLoadingPossibility Boolean
+roadSurfaceCondition Boolean
+salesType Boolean
+services Boolean
+sharedAccess Boolean
+state Boolean
+techSupportAccess Boolean
+timberTradeAccess Boolean
+transferOwnership Boolean
+treeAge Boolean
+treeSpecies Boolean
+}
+
+model forest_management_contactperson {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  accessRights ForestManagement_contactpersonAccessRights[]
+  email             String?
+  firstName         String
+  id_               String   @map("id")
+  lastName          String
+  locale            String?
+  mandatePartnerIds String[]
+  partnerId         String
+  roles             String[]
+
+  @@map("forest-management.contactperson")
+}
+
+model forest_management_partner {
+  id                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  associatedPartnerIdList   String[]
+  company                   String
+  contactName               String
+  deactivated               Boolean
+  forestCompanyAssociations String[]
+  id_                       String   @map("id")
+  latitude                  Float?
+  longitude                 Float?
+  mandatePersonIds          String[]
+  partnerNumber             String
+
+  @@map("forest-management.partner")
+}
+
+model map_config {
+  id                     String  @id @default(auto()) @map("_id") @db.ObjectId
+  contactPersonId        String
+  layers Map_configLayers[]
+  mapStartAtHomePosition Boolean
+  pileColoringStrategy   String
+
+  @@map("map.config")
+}
+
+model pile_certificates {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  expiryDate    String
+  id_           String  @map("id")
+  licenseNumber String?
+  number        String
+  partnerId     String
+  type          String
+
+  @@map("pile.certificates")
+}
+
+model pile_contactperson {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  accessRights Pile_contactpersonAccessRights[]
+  email                String?
+  firstName            String
+  id_                  String   @map("id")
+  landlineNumber       String?
+  lastName             String
+  locale               String?
+  mandatePartnerIds    String[]
+  partnerId            String
+  pileNumberRangeIndex Int?
+  roles                String[]
+  salutation           String?
+
+  @@map("pile.contactperson")
+}
+
+model pile_intermediatestorages {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  city        String?
+  designation String?
+  district    String?
+  id_         String  @map("id")
+  latitude    Float
+  longitude   Float
+  parcel      String?
+  partnerId   String
+  state       String?
+
+  @@map("pile.intermediatestorages")
+}
+
+model pile_inventory {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  buyingUnit        String
+  comment           String
+  correction        Boolean
+  createdDate       BigInt
+  createdUserId     String
+  faultyInventory   Boolean
+  inventoryAmountRm Float
+  pileId            String
+  status            String
+  statusDate        BigInt
+  statusUserId      String
+
+  @@map("pile.inventory")
+}
+
+model pile_map {
+  id                    String  @id @default(auto()) @map("_id") @db.ObjectId
+  actualAmount          Float
+  amountRm              Float
+  avgLengthM            Float
+  buyingUnit            String
+  forestOwnerId         String
+  forestOwnerPileNumber String?
+  forestOwnerPileStatus String?
+  hasRemoval            Int
+  id_                   String  @map("id")
+  inventoryAmountRm     Float
+  latitude              Float
+  logisticStatus        String
+  longitude             Float
+  pileNumber            String
+  registrationDate      BigInt
+  remainingAmountRm     Float
+  status                String
+  statusDate            BigInt
+  treeSpecies Pile_mapTreeSpecies[]
+  woodBuyerId           String
+  woodSpecies Pile_mapWoodSpecies?
+
+  @@map("pile.map")
+}
+
+model pile_partner {
+  id                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  accountingContactPersonId String
+  address                   String?
+  associatedPartnerIdList   String[]
+  city                      String?
+  company                   String
+  contactName               String
+  country                   String?
+  deactivated               Boolean
+  forestCompanyAssociations String[]
+  id_                       String   @map("id")
+  latitude                  Float?
+  longitude                 Float?
+  mandatePersonIds          String[]
+  partnerNumber             String
+  partnerType               String
+  pileNumberPrefix          String?
+  postcode                  String?
+
+  @@map("pile.partner")
+}
+
+model pile_table_preferences {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  columns pile_table_preferencesColumns[]
+  contactPersonId String
+  id_             String @map("id")
+  preferenceName  String
+
+  @@map("pile.table.preferences")
+}
+
+model pile_user_config {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  contactPersonId String
+  copyConfig pile_user_configCopyConfig
+
+  @@map("pile.user.config")
+}
+
+model report_generated {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  generatedAt       BigInt
+  locale            String
+  reportData        Int[]
+  reportDescription String
+  reportFormat      String
+  reportId          String
+  reportName        String
+  reportTitle       String
+  success           Boolean
+  userId            String
+  username          String
+
+  @@index([generatedAt(sort: Desc)], map: "generatedAt_-1")
+  @@map("report.generated")
+}

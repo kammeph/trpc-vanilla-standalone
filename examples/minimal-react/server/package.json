@@ -1,14 +1,16 @@
 {
-  "name": "@examples/minimal-react-server",
+  "name": "server",
   "version": "10.9.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch index.ts",
+    "build": "tsc -b && cp -R src/generated dist",
+    "build:prisma": "npx prisma generate --schema src/prisma/mysql/schema.prisma && npx prisma generate --schema src/prisma/mongo/schema.prisma",
+    "dev": "tsx watch src/index.ts",
     "lint": "eslint --ext \".js,.ts,.tsx\" --report-unused-disable-directives index.ts",
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@prisma/client": "^4.9.0",
     "@trpc/server": "^10.9.0",
     "zod": "^3.0.0"
   },

@@ -1,4 +1,4 @@
 import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '../../../server';
+import { PileRouter } from '../../../server/src/pile/pile-router';
 
-export const trpc = createTRPCReact<AppRouter>();
+export const trpc = createTRPCReact<PileRouter>();

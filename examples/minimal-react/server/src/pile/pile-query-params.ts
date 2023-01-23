@@ -1,0 +1,78 @@
+import { z } from 'zod';
+import { ForestOwnerPileStatusEnum } from './models';
+
+export const pileQueryParams = z
+  .object({
+    projectIdList: z.array(z.string()).optional(),
+    pileListIdList: z.array(z.string()).optional(),
+    woodBuyerIdList: z.array(z.string()).optional(),
+    forestOwnerIdList: z.array(z.string()).optional(),
+    logisticStatusList: z.array(z.number()).optional(),
+    logisticReadyStatusList: z.array(z.string()).optional(),
+    excludedLogisticStatusList: z.array(z.number()).optional(),
+    pileStatusList: z.array(z.number()).optional(),
+    projectStatusList: z.array(z.number()).optional(),
+    pileSaleTypeList: z.array(z.string()).optional(),
+    pileDamageTypeList: z.array(z.string()).optional(),
+    woodTypeIdList: z.array(z.number()).optional(),
+    woodKindList: z.array(z.string()).optional(),
+    woodQualityList: z.array(z.number()).optional(),
+    diameterCmFrom: z.number().optional(),
+    diameterCmTo: z.number().optional(),
+    amountRmFrom: z.number().optional(),
+    amountRmTo: z.number().optional(),
+    salesAmountRmFrom: z.number().optional(),
+    salesAmountRmTo: z.number().optional(),
+    lengthMFrom: z.number().optional(),
+    lengthMTo: z.number().optional(),
+    actualWoodKind: z.number().optional(),
+    actualWoodQuality: z.number().optional(),
+    registrationDateFrom: z.number().optional(),
+    registrationDateTo: z.number().optional(),
+    registrationUserIds: z.array(z.string()).optional(),
+    closingDateNull: z.boolean().optional(),
+    closingDateFrom: z.number().optional(),
+    closingDateTo: z.number().optional(),
+    statusDateFrom: z.number().optional(),
+    statusDateTo: z.number().optional(),
+    stateList: z.array(z.string()).optional(),
+    districtList: z.array(z.string()).optional(),
+    nearestCity: z.string().optional(),
+    searchText: z.string().optional(),
+    matchPileNumber: z.boolean().optional(),
+    intendedCustomerIdList: z.array(z.string()).optional(),
+    fscPool: z.boolean().optional(),
+    inventoryPerson: z.string().optional(),
+    actualCustomerIdList: z.array(z.string()).optional(),
+    transportOrderIdList: z.array(z.string()).optional(),
+    pileDamagePercentageFrom: z.number().optional(),
+    pileDamagePercentageTo: z.number().optional(),
+    woodBuyingUnit: z.number().optional(),
+    remainingAmountRmIsNull: z.boolean().optional(),
+    remainingAmountRmFrom: z.number().optional(),
+    remainingAmountRmTo: z.number().optional(),
+    overUnderSizeFrom: z.number().optional(),
+    overUnderSizeTo: z.number().optional(),
+    contractIds: z.array(z.string()).optional(),
+    certificateIds: z.array(z.string()).optional(),
+    forestOwnerPileStatus: z
+      .array(
+        z.enum([
+          ForestOwnerPileStatusEnum.Assigned,
+          ForestOwnerPileStatusEnum.InPreparation,
+          ForestOwnerPileStatusEnum.Invoice,
+          ForestOwnerPileStatusEnum.Offered,
+          ForestOwnerPileStatusEnum.Paid,
+          ForestOwnerPileStatusEnum.Ready,
+        ]),
+      )
+      .optional(),
+
+    serviceCostFrom: z.number().optional(),
+    serviceCostTo: z.number().optional(),
+    pageSize: z.number().optional(),
+    pageNumber: z.number().optional(),
+  })
+  .optional();
+
+export type PileQueryParams = z.infer<typeof pileQueryParams>;
