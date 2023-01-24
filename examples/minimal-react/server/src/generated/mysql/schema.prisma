@@ -1,9 +1,8 @@
 datasource db {
   provider = "mysql"
-  url      = "mysql://sf:sfpwd@localhost:3310/smart-forester?schema=public&connect_timeout=60"
+  url      = env("MYSQL_DATABASE_URL")
   // url      = "mysql://sf:sfpwd@smart-forester-mariadb:3306/smart-forester?schema=public&connect_timeout=60"
 }
-
 
 generator client {
   provider = "prisma-client-js"

@@ -4,7 +4,7 @@ import {
   PILE_OVER_UNDER_SIZE,
   PILE_REMAINING_AMOUNT_RM,
   PILE_SERVICE_COST,
-} from './pile-keys';
+} from './pile-columns';
 
 export const SELECT_PILE_ID = 'p.id';
 export const SELECT_PILE_SERVICE_COST = `SUM(IF(t.cost_with_discount is not null, t.cost_with_discount, t.cost_net)) AS ${PILE_SERVICE_COST}`;

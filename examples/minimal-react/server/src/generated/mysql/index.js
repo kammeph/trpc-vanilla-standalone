@@ -80,8 +80,8 @@ const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.
 
 // if the client has been bundled, we need to look for the folders
 const foundDirname = !regularDirname && findSync(process.cwd(), [
-    "../../generated/mysql",
-    "../generated/mysql",
+    "src/generated/mysql",
+    "generated/mysql",
 ], ['d'], ['d'], 1)[0]
 
 const dirname = regularDirname || foundDirname || __dirname
@@ -1502,7 +1502,8 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": "../../../.env",
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../prisma/mysql",
   "clientVersion": "4.9.0",
@@ -1531,6 +1532,6 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
-path.join(process.cwd(), "../../generated/mysql/libquery_engine-debian-openssl-3.0.x.so.node")
+path.join(process.cwd(), "src/generated/mysql/libquery_engine-debian-openssl-3.0.x.so.node")
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "../../generated/mysql/schema.prisma")
+path.join(process.cwd(), "src/generated/mysql/schema.prisma")

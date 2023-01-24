@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  pile-service:
+    build: .
+    image: smart-forester-pile-service-trpc
+    container_name: smart-forester-pile-service-trpc
+    restart: always
+    environment:
+      MYSQL_DATABASE_URL: mysql://sf:sfpwd@smart-forester-mariadb:3306/smart-forester?schema=public&connect_timeout=60
+      MONGO_DATABASE_URL: mongodb://root:rootpwd@mongo:27017/smart-forester?authSource=admin
+      QUERY_BATCH_SIZE: 900
+    ports:
+      - 2022:2022
+    networks:
+      - smart-forester-network
+
+networks:
+  smart-forester-network:
+    external:
+      name: base-dev-services_smart-forester-network

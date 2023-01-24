@@ -54,13 +54,14 @@ export const pileRouter = router({
         input?.pageSize && input.pageNumber
           ? input?.pageSize * (input?.pageNumber - 1)
           : 0,
-      take: input?.pageSize || 200,
+      take: input?.pageSize,
     });
     return {
       count: piles?.length,
-      piles: piles
-        .sort((a, b) => pileIds.indexOf(a.id) - pileIds.indexOf(b.id))
-        .map((pile) => pile.id),
+      piles: piles.sort(
+        (a, b) => pileIds.indexOf(a.id) - pileIds.indexOf(b.id),
+      ),
+      // .map((pile) => pile.id),
     };
   }),
   partnerList: publicProcedure.query(async () => {

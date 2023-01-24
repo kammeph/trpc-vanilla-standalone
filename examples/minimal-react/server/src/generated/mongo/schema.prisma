@@ -1,11 +1,12 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_DATABASE_URL")
+  // url      = "mongodb://root:rootpwd@mongo:27017/smart-forester?authSource=admin"
+}
+
 generator client {
   provider = "prisma-client-js"
   output   = "../../generated/mongo"
-}
-
-datasource db {
-  provider = "mongodb"
-  url      = "mongodb://root:rootpwd@localhost:27017/smart-forester?authSource=admin"
 }
 
 type ForestManagement_contactpersonAccessRights {

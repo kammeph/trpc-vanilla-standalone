@@ -80,8 +80,8 @@ const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.
 
 // if the client has been bundled, we need to look for the folders
 const foundDirname = !regularDirname && findSync(process.cwd(), [
-    "../../generated/mongo",
-    "../generated/mongo",
+    "src/generated/mongo",
+    "generated/mongo",
 ], ['d'], ['d'], 1)[0]
 
 const dirname = regularDirname || foundDirname || __dirname
@@ -302,7 +302,8 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": "../../../.env",
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../prisma/mongo",
   "clientVersion": "4.9.0",
@@ -331,6 +332,6 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
-path.join(process.cwd(), "../../generated/mongo/libquery_engine-debian-openssl-3.0.x.so.node")
+path.join(process.cwd(), "src/generated/mongo/libquery_engine-debian-openssl-3.0.x.so.node")
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "../../generated/mongo/schema.prisma")
+path.join(process.cwd(), "src/generated/mongo/schema.prisma")

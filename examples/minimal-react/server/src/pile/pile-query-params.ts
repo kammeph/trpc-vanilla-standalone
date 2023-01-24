@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ForestOwnerPileStatusEnum } from './models';
+import { ForestOwnerPileStatusEnum, PileTaskTypeEnum } from './models';
 
 export const pileQueryParams = z
   .object({
@@ -67,6 +67,43 @@ export const pileQueryParams = z
         ]),
       )
       .optional(),
+    commentContent: z.string().optional(),
+    commentCreatorIds: z.array(z.string()).optional(),
+    commentCreatedDateFrom: z.number().optional(),
+    commentCreatedDateTo: z.number().optional(),
+    forestOwnerId: z.string().optional(),
+    timberTradingPartnerId: z.string().optional(),
+    timberTradingPartnerIdIsNotNull: z.boolean().optional(),
+    intendedCustomerUnknown: z.boolean().optional(),
+    measurementTypes: z.array(z.number()).optional(),
+    logisticCompanyIds: z.array(z.string()).optional(),
+    withoutInvoice: z.boolean().optional(),
+    logisticStatusDateFrom: z.number().optional(),
+    logisticStatusDateTo: z.number().optional(),
+    logisticStatusUserIds: z.array(z.string()).optional(),
+    parcel: z.string().optional(),
+    forestDepartment: z.string().optional(),
+    recipientPartnerId: z.string().optional(),
+    forestServiceContracts: z.array(z.string()).optional(),
+    taskCertificateIds: z.array(z.string()).optional(),
+    taskType: z
+      .enum([
+        PileTaskTypeEnum.BACKING,
+        PileTaskTypeEnum.HARVESTER,
+        PileTaskTypeEnum.PROCESSING,
+        PileTaskTypeEnum.STAKING,
+      ])
+      .optional(),
+    technique: z.string().optional(),
+    forestServiceProviderIds: z.array(z.string()).optional(),
+    noDamage: z.boolean().optional(),
+    transportOrderDestinationIds: z.array(z.string()).optional(),
+    nonCertifiedWood: z.boolean().optional(),
+    timberTradeAndForestServiceContractIds: z.array(z.string()).optional(),
+    contractMeasurementTypes: z.array(z.string()).optional(),
+    forestMeasurementTypes: z.array(z.string()).optional(),
+    noPileNumber: z.boolean().optional(),
+    noWoodBuyer: z.boolean().optional(),
 
     serviceCostFrom: z.number().optional(),
     serviceCostTo: z.number().optional(),

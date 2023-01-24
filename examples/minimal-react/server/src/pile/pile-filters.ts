@@ -1,39 +1,43 @@
 import { OrderByDirection, SqlParams } from '../utils/sql';
 import { LogisticStatus, LogisticStatusEnum } from './models';
 import {
-  INNER_JOIN_PILE_CERTIFICATE,
-  INNER_JOIN_PILE_INTENDED_CUSTOMER,
-  INNER_JOIN_PILE_TASK,
-  INNER_JOIN_PROJECT,
-  INNER_JOIN_SALE,
-  INNER_JOIN_TRANSPORT_ORDER_ENTRY,
-  LEFT_JOIN_PILE_SPECIES_ACTUAL_ENTRY,
-  LEFT_JOIN_PILE_SPECIES_ENTRY,
-  LEFT_JOIN_WOOD,
-} from './pile-joins';
-import {
+  INVOICING_POSITION_ID,
+  INVOICING_POSITION_INVOICING_ID,
   PILE_AMOUNT_RM,
   PILE_AVG_DIAMETER_CM,
   PILE_AVG_LENGTH_M,
   PILE_CERTIFICATE_CERTIFICATE_ID,
   PILE_CLOSE_DATE,
   PILE_COMMENT,
+  PILE_COMMENT_COMMENT,
+  PILE_COMMENT_CREATED_DATE,
+  PILE_COMMENT_USER_ID,
   PILE_CONTRACT_ID,
+  PILE_CONTRACT_MEASUREMENT_TYPE,
+  PILE_DAMAGE,
   PILE_DAMAGE_PERCENTAGE,
   PILE_DAMAGE_TYPE,
   PILE_DISTRICT,
+  PILE_FOREST_DEPARTMENT,
+  PILE_FOREST_MEASUREMENT_TYPE,
   PILE_FOREST_OWNER_ID,
   PILE_FOREST_OWNER_PILE_STATUS,
   PILE_FOREST_OWNER_SALE_TYPE,
   PILE_FSC_POOL,
   PILE_INTENDED_CUSTOMER_CUSTOMER_ID,
+  PILE_INTENDED_CUSTOMER_ID,
   PILE_INVENTORY_NUMBER,
   PILE_LIST_ID,
   PILE_LOGISTIC_READY_STATUS,
   PILE_LOGISTIC_STATUS,
+  PILE_LOGISTIC_STATUS_DATE,
+  PILE_LOGISTIC_STATUS_USER_ID,
+  PILE_MEASUREMENT_TYPE,
   PILE_NEAREST_CITY,
+  PILE_NON_CERTIFIED_WOOD,
   PILE_NUMBER,
   PILE_OVER_UNDER_SIZE,
+  PILE_PARCEL,
   PILE_PROJECT_ID,
   PILE_REGISTRATION_DATE,
   PILE_REGISTRATION_USER_ID,
@@ -49,17 +53,39 @@ import {
   PILE_STATUS,
   PILE_STATUS_DATE,
   PILE_STATUS_USER_ID,
+  PILE_TASK_CERTIFICATE_ID,
+  PILE_TASK_CONTRACT_ID,
+  PILE_TASK_PARTNER_ID,
+  PILE_TASK_TASK_TYPE,
+  PILE_TASK_TECHNIQUE,
+  PILE_TIMBER_TRADING_PARTNER_ID,
   PILE_WOOD_BUYER_ID,
   PILE_WOOD_BUYING_UNIT,
   PROJECT_STATUS,
   SALE_CUSTOMER_ID,
-  TRANSPORT_ORDER_ENTRY_TRANSPORT_ORDER_ID,
+  TRANSPORT_ORDER_CUSTOMER_ID,
+  TRANSPORT_ORDER_ID,
+  TRANSPORT_ORDER_LOGISTICS_COMPANY_ID,
+  TRANSPORT_ORDER_STORAGE_ID,
   WOOD_DIAMETER_CM,
   WOOD_LENGTH_M,
   WOOD_WOOD_KIND,
   WOOD_WOOD_QUALITY,
   WOOD_WOOD_TYPE,
-} from './pile-keys';
+} from './pile-columns';
+import {
+  INNER_JOIN_PILE_CERTIFICATE,
+  INNER_JOIN_PILE_COMMENT,
+  INNER_JOIN_PROJECT,
+  INNER_JOIN_SALE,
+  INNER_JOIN_TRANSPORT_ORDER,
+  LEFT_JOIN_INVOICING_POSITION,
+  LEFT_JOIN_PILE_INTENDED_CUSTOMER,
+  LEFT_JOIN_PILE_SPECIES_ACTUAL_ENTRY,
+  LEFT_JOIN_PILE_SPECIES_ENTRY,
+  LEFT_JOIN_PILE_TASK,
+  LEFT_JOIN_WOOD,
+} from './pile-joins';
 import { PileQueryParams } from './pile-query-params';
 import {
   SELECT_PILE_ID,
@@ -378,7 +404,7 @@ export function getAllPileFilter(params: PileQueryParams): SqlParams {
 
   // filter by intended customer ids
   if (notEmpty(params?.intendedCustomerIdList)) {
-    join.add(INNER_JOIN_PILE_INTENDED_CUSTOMER);
+    join.add(LEFT_JOIN_PILE_INTENDED_CUSTOMER);
     where.push(
       `${PILE_INTENDED_CUSTOMER_CUSTOMER_ID} IN (${params?.intendedCustomerIdList
         ?.map((id) => `'${id}'`)
@@ -408,9 +434,9 @@ export function getAllPileFilter(params: PileQueryParams): SqlParams {
 
   // filter by transport order id list
   if (notEmpty(params?.transportOrderIdList)) {
-    join.add(INNER_JOIN_TRANSPORT_ORDER_ENTRY);
+    join.add(INNER_JOIN_TRANSPORT_ORDER);
     where.push(
-      `${TRANSPORT_ORDER_ENTRY_TRANSPORT_ORDER_ID} IN (${params?.transportOrderIdList
+      `${TRANSPORT_ORDER_ID} IN (${params?.transportOrderIdList
         ?.map((id) => `'${id}'`)
         .join(',')})`,
     );
@@ -426,6 +452,11 @@ export function getAllPileFilter(params: PileQueryParams): SqlParams {
   // filter by pile damage percentage to
   if (params?.pileDamagePercentageTo) {
     where.push(`${PILE_DAMAGE_PERCENTAGE} <= ${params.pileDamagePercentageTo}`);
+  }
+
+  // filter by wood buying unit
+  if (params?.woodBuyingUnit) {
+    where.push(`${PILE_WOOD_BUYING_UNIT} = ${params?.woodBuyingUnit}`);
   }
 
   // filter by remaining amount rm
@@ -484,22 +515,249 @@ export function getAllPileFilter(params: PileQueryParams): SqlParams {
     );
   }
 
+  // filter by comment content
+  if (params?.commentContent) {
+    join.add(INNER_JOIN_PILE_COMMENT);
+    where.push(
+      `${PILE_COMMENT_COMMENT} LIKE '%${params.commentContent.trim()}%'`,
+    );
+  }
+
+  // filter by comment creator ids
+  if (notEmpty(params?.commentCreatorIds)) {
+    join.add(INNER_JOIN_PILE_COMMENT);
+    where.push(
+      `${PILE_COMMENT_USER_ID} IN (${params?.commentCreatorIds
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by comment created date from
+  if (params?.commentCreatedDateFrom) {
+    join.add(INNER_JOIN_PILE_COMMENT);
+    where.push(
+      `${PILE_COMMENT_CREATED_DATE} >= '${new Date(
+        params.commentCreatedDateFrom,
+      ).toISOString()}'`,
+    );
+  }
+
+  // filter by comment created date to
+  if (params?.commentCreatedDateTo) {
+    join.add(INNER_JOIN_PILE_COMMENT);
+    where.push(
+      `${PILE_COMMENT_CREATED_DATE} <= '${new Date(
+        params.commentCreatedDateTo,
+      ).toISOString()}'`,
+    );
+  }
+  // filter by forest owner id
+  if (params?.forestOwnerId) {
+    where.push(`${PILE_FOREST_OWNER_ID} = '${params.forestOwnerId}'`);
+  }
+
+  // filter by timber trading partner id
+  if (params?.timberTradingPartnerId) {
+    where.push(
+      `${PILE_TIMBER_TRADING_PARTNER_ID} = '${params.timberTradingPartnerId}'`,
+    );
+  }
+
+  // filter by timber trading partner id is not null
+  if (params?.timberTradingPartnerIdIsNotNull) {
+    where.push(`${PILE_TIMBER_TRADING_PARTNER_ID} IS NOT NULL`);
+  }
+
+  // filter by intended customer unknown
+  if (params?.intendedCustomerUnknown) {
+    join.add(LEFT_JOIN_PILE_INTENDED_CUSTOMER);
+    where.push(`${PILE_INTENDED_CUSTOMER_ID} IS NULL`);
+  }
+
+  // filter by measurement types
+  if (notEmpty(params?.measurementTypes)) {
+    where.push(`${PILE_MEASUREMENT_TYPE} IN (${params?.measurementTypes})`);
+  }
+
+  // filter by logistic company ids
+  if (notEmpty(params?.logisticCompanyIds)) {
+    join.add(INNER_JOIN_TRANSPORT_ORDER);
+    where.push(
+      `${TRANSPORT_ORDER_LOGISTICS_COMPANY_ID} IN (${params?.logisticCompanyIds
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by without invoice
+  if (params?.withoutInvoice) {
+    join.add(LEFT_JOIN_INVOICING_POSITION);
+    where.push(`${INVOICING_POSITION_ID} IS NULL`);
+  }
+
+  // filter logistic status date from
+  if (params?.logisticStatusDateFrom) {
+    where.push(
+      `${PILE_LOGISTIC_STATUS_DATE} >= '${new Date(
+        params.logisticStatusDateFrom,
+      ).toISOString()}'`,
+    );
+  }
+
+  // filter logistic status date to
+  if (params?.logisticStatusDateTo) {
+    where.push(
+      `${PILE_LOGISTIC_STATUS_DATE} <= '${new Date(
+        params.logisticStatusDateTo,
+      ).toISOString()}'`,
+    );
+  }
+
+  // filter by logistic status user ids
+  if (notEmpty(params?.logisticStatusUserIds)) {
+    where.push(
+      `${PILE_LOGISTIC_STATUS_USER_ID} IN (${params?.logisticStatusUserIds
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by parcel
+  if (params?.parcel) {
+    where.push(`${PILE_PARCEL} LIKE '%${params.parcel.trim()}%'`);
+  }
+
+  // filter by forest department
+  if (params?.forestDepartment) {
+    where.push(
+      `${PILE_FOREST_DEPARTMENT} LIKE '%${params.forestDepartment.trim()}%'`,
+    );
+  }
+
+  // filter by recipient partner id
+  if (params?.recipientPartnerId) {
+    join.add(LEFT_JOIN_INVOICING_POSITION); // not included in the current pile service, my be not right
+    join.add(LEFT_JOIN_PILE_INTENDED_CUSTOMER);
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(
+      `${INVOICING_POSITION_INVOICING_ID} IS NOT NULL AND (${PILE_TIMBER_TRADING_PARTNER_ID} = '${params.recipientPartnerId}' OR ${PILE_FOREST_OWNER_ID} = '${params.recipientPartnerId}' OR ${PILE_TASK_PARTNER_ID} = '${params.recipientPartnerId}' OR ${PILE_INTENDED_CUSTOMER_CUSTOMER_ID} = '${params.recipientPartnerId}')`,
+    ); // invoicing position invoicing id not null not included in current pile service
+  }
+
+  // filter by forest service contracts
+  if (notEmpty(params?.forestServiceContracts)) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(
+      `${PILE_TASK_CONTRACT_ID} IN (${params?.forestServiceContracts
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by task certificate ids
+  if (notEmpty(params?.taskCertificateIds)) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(
+      `${PILE_TASK_CERTIFICATE_ID} IN (${params?.taskCertificateIds
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by task type
+  if (params?.taskType) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(`${PILE_TASK_TASK_TYPE} = '${params.taskType}'`);
+  }
+
+  // filter by technique
+  if (params?.technique) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(`${PILE_TASK_TECHNIQUE} = '${params.technique}'`);
+  }
+
+  // filter by forest service provider ids
+  if (notEmpty(params?.forestServiceProviderIds)) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    where.push(
+      `${PILE_TASK_PARTNER_ID} IN (${params?.forestServiceProviderIds
+        ?.map((id) => `'${id}'`)
+        .join(',')})`,
+    );
+  }
+
+  // filter by no damage
+  if (params?.noDamage) {
+    where.push(`${PILE_DAMAGE} = 0`);
+  }
+
+  // filter by transport order destination ids
+  if (notEmpty(params?.transportOrderDestinationIds)) {
+    join.add(INNER_JOIN_TRANSPORT_ORDER);
+    const destinationIds = params?.transportOrderDestinationIds
+      ?.map((id) => `'${id}'`)
+      .join(',');
+    where.push(
+      `${TRANSPORT_ORDER_CUSTOMER_ID} IN (${destinationIds}) OR ${TRANSPORT_ORDER_STORAGE_ID} IN (${destinationIds})`,
+    );
+  }
+
+  // filter by non certified wood
+  if (params?.nonCertifiedWood) {
+    where.push(`${PILE_NON_CERTIFIED_WOOD} = 1`);
+  }
+
+  // filter by timber trade and forest service contract ids
+  if (notEmpty(params?.timberTradeAndForestServiceContractIds)) {
+    join.add(LEFT_JOIN_PILE_TASK);
+    const contractIds = params?.timberTradeAndForestServiceContractIds
+      ?.map((id) => `'${id}'`)
+      .join(',');
+    where.push(
+      `${PILE_TASK_CONTRACT_ID} IN (${contractIds}) OR ${PILE_CONTRACT_ID} IN (${contractIds})`,
+    );
+  }
+
+  // filter by contract measurement types
+  if (notEmpty(params?.contractMeasurementTypes)) {
+    where.push(
+      `${PILE_CONTRACT_MEASUREMENT_TYPE} IN (${params?.contractMeasurementTypes
+        ?.map((type) => `'${type}'`)
+        .join(',')}) `,
+    );
+  }
+
+  // filter by forest measurement types
+  if (notEmpty(params?.forestMeasurementTypes)) {
+    where.push(
+      `${PILE_FOREST_MEASUREMENT_TYPE} IN (${params?.forestMeasurementTypes
+        ?.map((type) => `'${type}'`)
+        .join(',')}) `,
+    );
+  }
+
+  // filter by no pile number
+  if (params?.noPileNumber) {
+    where.push(`${PILE_NUMBER} IS NULL AND ${PILE_INVENTORY_NUMBER} IS NULL`);
+  }
+
+  // filter by no wood buyer
+  if (params?.noWoodBuyer) {
+    where.push(`${PILE_WOOD_BUYER_ID} IS NULL`);
+  }
+
   // filter by service cost from
   if (params?.serviceCostFrom) {
     selects.add(SELECT_PILE_SERVICE_COST);
-    join.add(INNER_JOIN_PILE_TASK);
+    join.add(LEFT_JOIN_PILE_TASK);
     having.push(`${PILE_SERVICE_COST} >= ${params.serviceCostFrom}`);
-  }
-
-  // filter by wood buying unit
-  if (params?.woodBuyingUnit) {
-    where.push(`${PILE_WOOD_BUYING_UNIT} = ${params?.woodBuyingUnit}`);
   }
 
   // filter by service cost to
   if (params?.serviceCostTo) {
     selects.add(SELECT_PILE_SERVICE_COST);
-    join.add(INNER_JOIN_PILE_TASK);
+    join.add(LEFT_JOIN_PILE_TASK);
     having.push(`${PILE_SERVICE_COST} <= ${params.serviceCostTo}`);
   }
 
